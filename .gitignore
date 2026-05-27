@@ -30,6 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# local scratch files with credentials
+/scratch/test_db.js
+
 # env files (can opt-in for committing if needed)
 .env*
 

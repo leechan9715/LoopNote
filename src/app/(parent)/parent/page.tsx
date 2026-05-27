@@ -57,6 +57,18 @@ function ParentDashboardPage() {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [customCoaching, setCustomCoaching] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedChildId && typeof window !== "undefined") {
+      const stored = localStorage.getItem(`coaching_feedback_${selectedChildId}`);
+      if (stored) {
+        setCustomCoaching(stored);
+      } else {
+        setCustomCoaching(null);
+      }
+    }
+  }, [selectedChildId]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -367,11 +379,15 @@ function ParentDashboardPage() {
               </div>
               <div>
                 <span className="block text-[11px] font-black text-teal-800 tracking-wider uppercase">Question to Ask</span>
-                <span className="block text-sm font-black text-slate-900">오늘 해볼 질문</span>
+                <span className="block text-sm font-black text-slate-900">오늘 해볼 질문 및 조언</span>
               </div>
             </div>
             <p className="text-[13px] font-bold leading-relaxed text-slate-700 bg-white/70 rounded-xl p-3 border border-teal-100/50 flex-1">
-              "지우야, 오늘 피자 조각으로 분수를 비교하는 미션을 해봤던데, 1/3이랑 1/5 중에 왜 1/3 피자 조각이 더 큰지 엄마한테 피자 먹는 척하면서 설명해 줄 수 있어?"
+              {customCoaching ? (
+                customCoaching
+              ) : (
+                `"${selectedReport.childName}야, 오늘 피자 조각으로 분수를 비교하는 미션을 해봤던데, 1/3이랑 1/5 중에 왜 1/3 피자 조각이 더 큰지 엄마한테 피자 먹는 척하면서 설명해 줄 수 있어?"`
+              )}
             </p>
           </article>
 

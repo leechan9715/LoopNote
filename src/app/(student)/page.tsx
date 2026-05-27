@@ -48,6 +48,17 @@ export default function StudentHomePage() {
     [user?.user_metadata]
   );
 
+  const [coachingFeedback, setCoachingFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.id && typeof window !== "undefined") {
+      const stored = localStorage.getItem(`coaching_feedback_${user.id}`);
+      if (stored) {
+        setCoachingFeedback(stored);
+      }
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     if (!user?.id || !isAuthenticated) {
       return;
@@ -487,7 +498,13 @@ export default function StudentHomePage() {
                 COACHING CARD FEEDBACK
               </span>
               <p className="text-xs font-bold text-[#064e52] leading-relaxed">
-                지우 학생은 이번 주에 분수의 기초 개념을 <strong>80%</strong> 마스터했어요! 다음 단계인 동분모 덧셈을 시도해봐도 좋아요. 🌱
+                {coachingFeedback ? (
+                  coachingFeedback
+                ) : (
+                  <>
+                    {studentName} 학생은 이번 주에 분수의 기초 개념을 <strong>80%</strong> 마스터했어요! 다음 단계인 동분모 덧셈을 시도해봐도 좋아요. 🌱
+                  </>
+                )}
               </p>
             </div>
           </section>

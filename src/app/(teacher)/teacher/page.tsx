@@ -152,6 +152,12 @@ export default function TeacherDashboard() {
       actions.push("오답 회복 미션 발행");
       await handleSendMission(selectedStudentForCoaching);
     }
+
+    // Save to localStorage under student's ID so student & parent pages can render it dynamically on the same browser origin
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`coaching_feedback_${selectedStudentForCoaching.id}`, coachingFeedbackText);
+    }
+
     showToast(`${selectedStudentForCoaching.name} 학생 1:1 코칭 리포트가 전송되었습니다! (${actions.join(", ")})`, "success");
     setSelectedStudentForCoaching(null);
   };
