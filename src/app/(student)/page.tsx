@@ -51,13 +51,57 @@ export default function StudentHomePage() {
   const [coachingFeedback, setCoachingFeedback] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.id && typeof window !== "undefined") {
-      const stored = localStorage.getItem(`coaching_feedback_${user.id}`);
-      if (stored) {
-        setCoachingFeedback(stored);
+    if (!user?.id || !isAuthenticated) return;
+
+    let isMounted = true;
+
+    const fetchCoachingFeedback = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("coaching_feedback")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.warn("Failed to load coaching feedback:", error.message);
+          return;
+        }
+
+        if (isMounted && data) {
+          setCoachingFeedback(data.coaching_feedback);
+        }
+      } catch (err) {
+        console.warn("Error fetching coaching feedback:", err);
       }
-    }
-  }, [user?.id]);
+    };
+
+    void fetchCoachingFeedback();
+
+    // REAL-TIME WEBSOCKET SUBSCRIPTION!
+    const channel = supabase
+      .channel(`profile-coaching-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${user.id}`,
+        },
+        (payload: any) => {
+          if (isMounted && payload.new) {
+            setCoachingFeedback(payload.new.coaching_feedback as string | null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [user?.id, isAuthenticated, supabase]);
 
   useEffect(() => {
     if (!user?.id || !isAuthenticated) {

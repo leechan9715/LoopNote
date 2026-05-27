@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { Button, Typography } from "@/components/common";
 import { useTimer } from "@/hooks/useTimer";
+import { useAuth } from "@/hooks/useAuth";
 import { createBrowserSupabaseClient } from "@/services/supabase";
 
 const MISSION_SECONDS = 10 * 60;
@@ -45,6 +46,9 @@ function formatTime(totalSeconds: number) {
 export function MissionLearningClient({ mission }: MissionLearningClientProps) {
   const router = useRouter();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
+  const { user, isAuthenticated } = useAuth();
+  const isDemoStudent = !isAuthenticated || (user && user.email === "student@loopnote.com");
+  const studentName = user?.user_metadata?.full_name || "지우";
   
   // Timer Hook
   const { progress, remainingSeconds, reset } = useTimer({
@@ -205,6 +209,17 @@ export function MissionLearningClient({ mission }: MissionLearningClientProps) {
     setEvaluationFeedback(null);
     setIsFeedbackError(false);
 
+    if (isDemoStudent) {
+      alert("체험용 계정에서는 미션 풀이 상태가 저장되지 않으며 AI 평가 요청이 제한됩니다. 로그인 후 나의 오답 미션을 직접 완료해 보세요! 🌱");
+      setEvaluationFeedback("참 멋진 생각이에요! 다음 단계로 넘어가 볼까요? (체험 모드 로컬 자동 통과) 🚀");
+      setTimeout(() => {
+        setEvaluationFeedback(null);
+        setCurrentStep((prev) => (prev + 1));
+      }, 1200);
+      setIsEvaluating(false);
+      return;
+    }
+
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
@@ -250,6 +265,25 @@ export function MissionLearningClient({ mission }: MissionLearningClientProps) {
       if (resData.isCorrect) {
         setIsFeedbackError(false);
         setEvaluationFeedback(resData.feedback || "정말 훌륭한 시도입니다! 잘 이해하셨네요! ✨");
+        
+        // Sync intermediate step progress to DB
+        try {
+          await fetch("/api/missions/progress", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              missionId: mission.id,
+              step: currentStep,
+              isCompleted: false,
+            }),
+          });
+        } catch (dbErr) {
+          console.warn("Failed to sync intermediate progress to DB:", dbErr);
+        }
+
         // Proceed after a brief display
         setTimeout(() => {
           setEvaluationFeedback(null);
@@ -281,6 +315,13 @@ export function MissionLearningClient({ mission }: MissionLearningClientProps) {
     setIsSaving(true);
     setEvaluationFeedback(null);
     setIsFeedbackError(false);
+
+    if (isDemoStudent) {
+      alert("체험용 계정에서는 미션 완료 저장이 제한됩니다. 로그인 후 나의 오답 미션을 직접 완료해 보세요! 🌱");
+      setIsSuccessModalOpen(true);
+      setIsSaving(false);
+      return;
+    }
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -319,29 +360,29 @@ export function MissionLearningClient({ mission }: MissionLearningClientProps) {
         }
       }
 
-      // Update Supabase Database
-      const { error: missionError } = await supabase
-        .from("recovery_missions")
-        .update({
-          current_step: 3,
-          is_completed: true,
-        })
-        .eq("id", mission.id);
+      // Update progress and completion via secure API instead of browser-direct supabase client
+      const completeRes = await fetch("/api/missions/progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          missionId: mission.id,
+          questionId: mission.questionId,
+          step: 3,
+          isCompleted: true,
+        }),
+      });
 
-      if (missionError) throw missionError;
-
-      const { error: questionError } = await supabase
-        .from("questions")
-        .update({
-          status: "resolved",
-        })
-        .eq("id", mission.questionId);
-
-      if (questionError) throw questionError;
+      if (!completeRes.ok) {
+        throw new Error("미션 완료 API 통신 실패");
+      }
 
       setIsSuccessModalOpen(true);
     } catch (err) {
       console.error("Error saving recovery progress:", err);
+      // Fallback to show success modal
       setIsSuccessModalOpen(true);
     } finally {
       setIsSaving(false);
@@ -781,12 +822,12 @@ export function MissionLearningClient({ mission }: MissionLearningClientProps) {
               {isFractionConcept ? (
                 <>
                   분수의 분모 비밀을 밝혀내셨군요! <br />
-                  지우 학생은 피자 모델로 단위 분수를 확실하게 극복해 <strong>회복 에너지 {mission.energyReward}점</strong>을 모았습니다!
+                  {studentName} 학생은 피자 모델로 단위 분수를 확실하게 극복해 <strong>회복 에너지 {mission.energyReward}점</strong>을 모았습니다!
                 </>
               ) : (
                 <>
                   개념의 막힘을 완벽하게 해결하셨군요! <br />
-                  지우 학생은 이번 오답의 핵심 개념(<strong>{mission.concept}</strong>)을 정복하여 <strong>회복 에너지 {mission.energyReward}점</strong>을 모았습니다!
+                  {studentName} 학생은 이번 오답의 핵심 개념(<strong>{mission.concept}</strong>)을 정복하여 <strong>회복 에너지 {mission.energyReward}점</strong>을 모았습니다!
                 </>
               )}
             </Typography>

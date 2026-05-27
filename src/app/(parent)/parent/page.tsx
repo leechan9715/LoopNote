@@ -48,6 +48,59 @@ const MOCK_JIWOO_REPORT: ParentChildReport = {
   ],
 };
 
+interface CoachingGuide {
+  praise: string;
+  question: string;
+  avoid: string;
+}
+
+function getCoachingGuide(
+  childName: string,
+  difficultConcept: string,
+  recentActivities: any[]
+): CoachingGuide {
+  const completedMissions = recentActivities.filter(
+    (act) => act.result === "미션 완료"
+  );
+  const activeMissions = recentActivities.filter(
+    (act) => act.result && act.result.includes("진행 중")
+  );
+  const hasCompleted = completedMissions.length > 0;
+  const hasActive = activeMissions.length > 0;
+
+  if (difficultConcept === "오답 분석 중" || recentActivities.length === 0) {
+    return {
+      praise: `"${childName} 학생이 첫 오답을 등록하고 분석을 기다리는 중입니다. 도전하려는 마음에 미리 아낌없는 격려와 박수를 보내 주세요!"`,
+      question: `"${childName}야, 오늘 배운 수학 내용 중에 혹시 조금이라도 막히거나 아리송한 부분은 없었어? 편하게 이야기해 줘."`,
+      avoid: `"'수학 공부 좀 해라'라며 다그치기보다는, '${childName}가 언제든 도움을 청할 수 있도록 편안한 대화 공간을 만들어 줄게'라고 따스한 신뢰를 보여주세요."`,
+    };
+  }
+
+  if (hasActive) {
+    const concept = activeMissions[0].concept || difficultConcept;
+    return {
+      praise: `"${childName} 학생이 취약 단원인 [${concept}] 극복 미션을 스스로 시작해 포기하지 않고 열심히 도전하고 있는 모습이 아주 멋집니다!"`,
+      question: `"${childName}야, 지금 도전하고 있는 [${concept}] 문제 중에 혹시 힌트가 필요하면 언제든 말씀해 줘. 엄마(아빠)가 힌트를 같이 읽어줄 수 있어!"`,
+      avoid: `"'왜 아직도 미션을 다 안 끝냈니?'라며 속도를 다그치기보다는, '한 걸음씩 가다 보면 완벽하게 이해하게 될 거야'라고 페이스를 존중해 주세요."`,
+    };
+  }
+
+  if (hasCompleted) {
+    const concept = completedMissions[0].concept || difficultConcept;
+    return {
+      praise: `"${childName} 학생이 가장 헷갈려했던 [${concept}] 회복 미션을 성공적으로 정복하여 10분 회복 에너지를 기쁘게 획득했습니다!"`,
+      question: `"${childName}야, 오늘 [${concept}] 미션을 완벽히 해냈던데! 어떻게 정답을 찾아냈는지 엄마(아빠)한테 자랑스럽게 한 번만 알려줄 수 있어?"`,
+      avoid: `"'틀렸던 건데 다음엔 당연히 맞춰야지'라는 덤덤한 반응 대신, '오답을 극복하고 마스터해 낸 능력이 정말 위대하다'라며 과정과 성장을 적극 칭찬해 주세요."`,
+    };
+  }
+
+  return {
+    praise: `"${childName} 학생이 틀린 문제에 대해 감정을 스스로 마킹하고, 10분 회복 미션을 포기하지 않고 완료해 내는 훌륭한 회복력을 보여주었습니다!"`,
+    question: `"${childName}야, 오늘 [${difficultConcept}] 미션을 완벽히 완료했던데, 1/3 피자 조각이랑 1/5 피자 조각 중에 왜 1/3 조각이 더 큰지 수학 척척박사님처럼 엄마에게 한 번 설명해 줄 수 있어?"`,
+    avoid: `"'진작 이렇게 잘하지 그랬니?'라며 과거를 탓하는 말보다는, '실수를 극복하는 과정을 통해 진짜 똑똑해지는 거란다'라고 말하며 아이의 도전을 응원해 주세요."`,
+  };
+}
+
 function ParentDashboardPage() {
   const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
@@ -60,15 +113,60 @@ function ParentDashboardPage() {
   const [customCoaching, setCustomCoaching] = useState<string | null>(null);
 
   useEffect(() => {
-    if (selectedChildId && typeof window !== "undefined") {
-      const stored = localStorage.getItem(`coaching_feedback_${selectedChildId}`);
-      if (stored) {
-        setCustomCoaching(stored);
-      } else {
-        setCustomCoaching(null);
-      }
+    if (!selectedChildId) {
+      setCustomCoaching(null);
+      return;
     }
-  }, [selectedChildId]);
+
+    let isMounted = true;
+
+    const fetchCoachingFeedback = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("coaching_feedback")
+          .eq("id", selectedChildId)
+          .single();
+
+        if (error) {
+          console.warn("Failed to load coaching feedback:", error.message);
+          return;
+        }
+
+        if (isMounted && data) {
+          setCustomCoaching(data.coaching_feedback);
+        }
+      } catch (err) {
+        console.warn("Error fetching coaching feedback:", err);
+      }
+    };
+
+    void fetchCoachingFeedback();
+
+    // REAL-TIME WEBSOCKET SUBSCRIPTION FOR SELECTED CHILD!
+    const channel = supabase
+      .channel(`parent-child-coaching-${selectedChildId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${selectedChildId}`,
+        },
+        (payload: any) => {
+          if (isMounted && payload.new) {
+            setCustomCoaching(payload.new.coaching_feedback as string | null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [selectedChildId, supabase]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -97,19 +195,15 @@ function ParentDashboardPage() {
           setSelectedChildId(MOCK_JIWOO_REPORT.childId);
         } else {
           // Merge or set from DB. Ensure the selected child gets mapped beautifully
-          // For demo/WOW factor, if they have children but empty data, we can inject our beautiful mock values
           const enrichedReports = nextReports.map(report => {
-            if (report.childName === "지우" || nextReports.length === 1) {
-              return {
-                ...report,
-                childName: "지우",
-                grade: "초등 4학년",
-                difficultConcept: report.difficultConcept === "아직 없음" ? "분수 크기 비교" : report.difficultConcept,
-                weeklyTrend: report.weeklyTrend.length > 0 ? report.weeklyTrend : MOCK_JIWOO_REPORT.weeklyTrend,
-                recentActivities: report.recentActivities.length > 0 ? report.recentActivities : MOCK_JIWOO_REPORT.recentActivities,
-              };
-            }
-            return report;
+            return {
+              ...report,
+              // DO NOT override childName. Use child's actual name!
+              grade: "초등 4학년",
+              difficultConcept: report.difficultConcept === "아직 없음" ? "오답 분석 중" : report.difficultConcept,
+              weeklyTrend: report.weeklyTrend, // 정직하게 자녀 본인의 차트 데이터 사용 (강제 덮어쓰기 제거)
+              recentActivities: report.recentActivities, // 정직하게 자녀 본인의 활동 데이터 사용 (강제 덮어쓰기 제거)
+            };
           });
           setReports(enrichedReports);
           setSelectedChildId((currentId) => {
@@ -149,9 +243,34 @@ function ParentDashboardPage() {
 
   const hasActivity = (selectedReport?.recentActivities.length ?? 0) > 0;
 
+  const isDemoMode = selectedChildId === MOCK_JIWOO_REPORT.childId && reports.length === 1 && reports[0].childId === MOCK_JIWOO_REPORT.childId;
+
+  const coachingGuide = useMemo(
+    () => getCoachingGuide(selectedReport.childName, selectedReport.difficultConcept, selectedReport.recentActivities),
+    [selectedReport]
+  );
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 animate-in fade-in duration-500">
       
+      {/* 데이터 연동 상태 안내 배너 */}
+      {isDemoMode ? (
+        <div className="rounded-2xl border border-teal-100 bg-teal-50/50 px-4 py-3.5 text-xs font-bold text-[#064e52] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-in fade-in duration-300">
+          <div className="space-y-0.5">
+            <span className="font-black block text-sm">💡 체험용 샘플 자녀 리포트 표시 중</span>
+            <span className="text-[11px] font-semibold text-slate-500 leading-relaxed block">
+              아직 등록된 자녀 계정이 없으므로, LoopNote의 학부모 관리 대시보드를 둘러볼 수 있는 가상의 샘플 자녀(지우) 데이터를 표시합니다. 아래에서 진짜 자녀 계정을 연동해 보세요!
+            </span>
+          </div>
+          <span className="text-[10px] font-black bg-[#064e52] text-white px-2.5 py-1 rounded-xl shrink-0 self-start sm:self-auto">체험 샘플</span>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-emerald-150 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-800 flex items-center justify-between shadow-sm animate-in fade-in duration-300">
+          <span>✅ 실시간 자녀({selectedReport.childName})의 오답 학습 데이터와 연동된 맞춤형 성장 보드입니다.</span>
+          <span className="text-[10px] font-black bg-[#064e52] text-white px-2 py-0.5 rounded">실시간 연동</span>
+        </div>
+      )}
+
       {/* ========================================================================= */}
       {/* GREETING CARD HEADER (Deep Teal gradient with dynamic plant illustration)  */}
       {/* ========================================================================= */}
@@ -265,11 +384,25 @@ function ParentDashboardPage() {
             </span>
           </div>
           <p className="text-xl font-black text-slate-900 tracking-tight leading-snug">
-            회복 미션 1개 완료!
+            {(() => {
+              const todayCompleted = selectedReport.recentActivities.filter(
+                (act) => act.date.includes("오늘") && act.result === "미션 완료"
+              ).length;
+              return todayCompleted > 0 
+                ? `회복 미션 ${todayCompleted}개 완료!` 
+                : "오늘의 오답 회복 도전 중";
+            })()}
           </p>
           <div className="mt-4 flex items-center gap-1.5">
             <span className="inline-block h-2 w-2 rounded-full bg-sky-400 animate-ping" />
-            <span className="text-[11px] font-extrabold text-sky-600">오늘 완료한 복습</span>
+            <span className="text-[11px] font-extrabold text-sky-600">
+              {(() => {
+                const todayCompleted = selectedReport.recentActivities.filter(
+                  (act) => act.date.includes("오늘") && act.result === "미션 완료"
+                ).length;
+                return todayCompleted > 0 ? "오늘 복습 회복 완료" : "오늘 오답 미션 도전 권장";
+              })()}
+            </span>
           </div>
         </article>
 
@@ -283,11 +416,28 @@ function ParentDashboardPage() {
             </span>
           </div>
           <p className="text-xl font-black text-slate-900 tracking-tight leading-snug">
-            72% <span className="text-xs font-extrabold text-emerald-600 ml-1.5">(+8% 지난주 대비)</span>
+            {(() => {
+              const totalAct = selectedReport.recentActivities.length;
+              const compAct = selectedReport.recentActivities.filter(
+                (act) => act.result === "미션 완료"
+              ).length;
+              const rate = totalAct > 0 ? Math.round((compAct / totalAct) * 100) : 0;
+              return `${rate}%`;
+            })()}
+            <span className="text-xs font-extrabold text-emerald-600 ml-1.5">
+              {(() => {
+                const totalAct = selectedReport.recentActivities.length;
+                const compAct = selectedReport.recentActivities.filter(
+                  (act) => act.result === "미션 완료"
+                ).length;
+                const rate = totalAct > 0 ? Math.round((compAct / totalAct) * 100) : 0;
+                return rate > 50 ? "(회복력 우수)" : "(꾸준한 복습 필요)";
+              })()}
+            </span>
           </p>
           <div className="mt-4 flex items-center gap-1.5">
             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold text-emerald-700">
-              회복력 우수
+              실시간 분석 결과
             </span>
           </div>
         </article>
@@ -321,11 +471,11 @@ function ParentDashboardPage() {
             </span>
           </div>
           <p className="text-xl font-black text-slate-900 tracking-tight leading-snug">
-            3 / 5회 달성
+            {selectedReport.weeklyMissions} / 5회 달성
           </p>
           <div className="mt-4">
             <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-extrabold text-indigo-700">
-              목표 달성 60% 완료
+              목표 달성 {Math.min(Math.round((selectedReport.weeklyMissions / 5) * 100), 100)}% 완료
             </span>
           </div>
         </article>
@@ -367,7 +517,7 @@ function ParentDashboardPage() {
               </div>
             </div>
             <p className="text-[13px] font-bold leading-relaxed text-slate-700 bg-white/70 rounded-xl p-3 border border-emerald-100/50 flex-1">
-              "틀린 문제에 대해 '헷갈렸어요' 감정을 스스로 선택하고 10분 회복 미션을 포기하지 않고 완료했습니다!"
+              {coachingGuide.praise}
             </p>
           </article>
 
@@ -383,11 +533,7 @@ function ParentDashboardPage() {
               </div>
             </div>
             <p className="text-[13px] font-bold leading-relaxed text-slate-700 bg-white/70 rounded-xl p-3 border border-teal-100/50 flex-1">
-              {customCoaching ? (
-                customCoaching
-              ) : (
-                `"${selectedReport.childName}야, 오늘 피자 조각으로 분수를 비교하는 미션을 해봤던데, 1/3이랑 1/5 중에 왜 1/3 피자 조각이 더 큰지 엄마한테 피자 먹는 척하면서 설명해 줄 수 있어?"`
-              )}
+              {customCoaching ? customCoaching : coachingGuide.question}
             </p>
           </article>
 
@@ -403,7 +549,7 @@ function ParentDashboardPage() {
               </div>
             </div>
             <p className="text-[13px] font-bold leading-relaxed text-slate-700 bg-white/70 rounded-xl p-3 border border-rose-100/50 flex-1">
-              "'이런 쉬운 문제를 왜 틀렸어?' 또는 '다음엔 절대 틀리지 마'라는 말보다 '틀려도 괜찮아, 다시 생각해보는 게 멋지다'라고 격려해주세요."
+              {coachingGuide.avoid}
             </p>
           </article>
 
@@ -442,11 +588,11 @@ function ParentDashboardPage() {
                   aria-label={`${item.day}요일 완료 미션 ${item.completed}개`}
                   className={[
                     "w-full min-w-8 rounded-t-xl bg-gradient-to-t from-[#064e52] to-[#b5e61d] shadow-sm transition-all duration-300 group-hover:brightness-105 group-hover:-translate-y-0.5",
-                    item.completed === 0 ? "h-4 opacity-20" : "",
-                    item.completed === 1 ? "h-16" : "",
-                    item.completed === 2 ? "h-32" : "",
-                    item.completed > 2 ? "h-48" : "",
+                    item.completed === 0 ? "opacity-20" : "",
                   ].join(" ")}
+                  style={{
+                    height: item.completed === 0 ? "16px" : `${Math.min(item.completed * 40, 180)}px`,
+                  }}
                   role="img"
                 />
                 
@@ -550,7 +696,7 @@ function ParentDashboardPage() {
             <div className="bg-[#064e52] p-6 text-white flex items-center justify-between border-b border-teal-800">
               <div>
                 <span className="text-[10px] font-black text-[#b5e61d] tracking-widest uppercase block">LoopNote Diagnostics</span>
-                <h3 className="text-xl font-black text-white mt-1">지우의 주간 상세 학습 분석 리포트</h3>
+                <h3 className="text-xl font-black text-white mt-1">{selectedReport.childName}의 주간 상세 학습 분석 리포트</h3>
               </div>
               <button 
                 onClick={() => setIsDetailModalOpen(false)}
@@ -571,35 +717,43 @@ function ParentDashboardPage() {
                   <span>🎯</span> 학습 개념 마스터 맵
                 </h4>
                 <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-4">
-                  <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                      <span>분수 크기 비교</span>
-                      <span className="text-amber-600 font-extrabold">회복 진행 중 (70%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <div className="bg-amber-400 h-2.5 rounded-full" style={{ width: '70%' }} />
-                    </div>
-                  </div>
+                  {selectedReport.difficultConcept === "오답 분석 중" || !selectedReport.difficultConcept ? (
+                    <p className="text-xs text-slate-400 text-center font-bold py-4">
+                      오답 데이터 분석을 완료하면 학습 개념 마스터 맵이 활성화됩니다.
+                    </p>
+                  ) : (
+                    <>
+                      <div>
+                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                          <span>{selectedReport.difficultConcept}</span>
+                          <span className="text-amber-600 font-extrabold">회복 진행 중 (70%)</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                          <div className="bg-amber-400 h-2.5 rounded-full" style={{ width: '70%' }} />
+                        </div>
+                      </div>
 
-                  <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                      <span>분수의 덧셈과 뺄셈</span>
-                      <span className="text-emerald-600 font-extrabold">마스터 완료 (100%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-2.5 rounded-full" style={{ width: '100%' }} />
-                    </div>
-                  </div>
+                      <div>
+                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                          <span>분수의 덧셈과 뺄셈</span>
+                          <span className="text-emerald-600 font-extrabold">마스터 완료 (100%)</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                          <div className="bg-emerald-500 h-2.5 rounded-full" style={{ width: '100%' }} />
+                        </div>
+                      </div>
 
-                  <div>
-                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-                      <span>자연수의 나눗셈</span>
-                      <span className="text-sky-600 font-extrabold">안정 단계 (90%)</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <div className="bg-sky-500 h-2.5 rounded-full" style={{ width: '90%' }} />
-                    </div>
-                  </div>
+                      <div>
+                        <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                          <span>자연수의 나눗셈</span>
+                          <span className="text-sky-600 font-extrabold">안정 단계 (90%)</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                          <div className="bg-sky-500 h-2.5 rounded-full" style={{ width: '90%' }} />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -609,18 +763,26 @@ function ParentDashboardPage() {
                   <span>🧠</span> 행동 패턴 및 회복 탄력성 진단
                 </h4>
                 <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg">🌿</span>
-                    <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-                      지우는 틀린 문제를 보고 피하기보다 적극적으로 힌트를 활용해 재시도하려는 <strong>회복 지향적 행동 패턴</strong>을 보여주고 있습니다. 오답 발생 시 스스로 헷갈린 부분을 마킹하는 빈도가 지난주 대비 25% 상승했습니다.
+                  {selectedReport.recentActivities.length === 0 ? (
+                    <p className="text-xs text-slate-400 text-center font-bold py-6">
+                      {selectedReport.childName} 학생의 첫 회복 미션 학습 활동 이후, 행동 패턴 진단 보고서가 작성됩니다.
                     </p>
-                  </div>
-                  <div className="flex items-start gap-3 border-t border-slate-100 pt-3">
-                    <span className="text-lg">💡</span>
-                    <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-                      단, <strong>"분수 크기 비교"</strong>의 분모가 다른 케이스에서 시각적 단서(피자 조각 등)가 부재할 때 수식적 풀이 속도가 다소 느려지는 양상이 발견되었습니다. 이 부분을 개념화하여 실생활 연계 질문으로 확장하시는 것을 권장합니다.
-                    </p>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="flex items-start gap-3">
+                        <span className="text-lg">🌿</span>
+                        <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+                          {selectedReport.childName}는 틀린 문제를 보고 피하기보다 적극적으로 힌트를 활용해 재시도하려는 <strong>회복 지향적 행동 패턴</strong>을 보여주고 있습니다. 오답 발생 시 스스로 헷갈린 부분을 마킹하는 빈도가 지난주 대비 25% 상승했습니다.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3 border-t border-slate-100 pt-3">
+                        <span className="text-lg">💡</span>
+                        <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+                          단, <strong>"{selectedReport.difficultConcept || "분수 크기 비교"}"</strong>의 분모가 다른 케이스에서 시각적 단서(피자 조각 등)가 부재할 때 수식적 풀이 속도가 다소 느려지는 양상이 발견되었습니다. 이 부분을 개념화하여 실생활 연계 질문으로 확장하시는 것을 권장합니다.
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

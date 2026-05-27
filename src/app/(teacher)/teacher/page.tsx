@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { createBrowserSupabaseClient } from "@/services/supabase";
+import { useAuth } from "@/hooks/useAuth";
 
 // ─── 타입 정의 ────────────────────────────────────────────────
 interface StudentData {
@@ -48,6 +49,9 @@ interface Toast {
 
 // ─── 컴포넌트 ─────────────────────────────────────────────────
 export default function TeacherDashboard() {
+  const { user, isAuthenticated } = useAuth();
+  const isDemoTeacher = !isAuthenticated || (user && user.email === "teacher@loopnote.com");
+
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -98,7 +102,30 @@ export default function TeacherDashboard() {
 
   useEffect(() => {
     void loadClassData();
-  }, [loadClassData]);
+
+    // REAL-TIME WEBSOCKET SUBSCRIPTION TO QUESTIONS AND MISSIONS!
+    const channel = supabase
+      .channel("teacher-class-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "questions" },
+        () => {
+          void loadClassData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "recovery_missions" },
+        () => {
+          void loadClassData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [loadClassData, supabase]);
 
   const showToast = (message: string, type: "success" | "info" | "warning" = "success") => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -108,6 +135,10 @@ export default function TeacherDashboard() {
 
   // ── 미션 전송 ────────────────────────────────────────────────
   const handleSendMission = async (student: StudentData) => {
+    if (isDemoTeacher) {
+      alert("체험용 계정에서는 1:1 코칭 리포트 발행 및 오답 미션 처방이 불가능합니다. 로그인 후 실제 학급을 지도해 보세요! 👩‍🏫");
+      return;
+    }
     setSendingMission(student.id);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -135,6 +166,10 @@ export default function TeacherDashboard() {
   };
 
   const handleSendRecommendedMission = (conceptName: string, studentCount: number) => {
+    if (isDemoTeacher) {
+      alert("체험용 계정에서는 1:1 코칭 리포트 발행 및 오답 미션 처방이 불가능합니다. 로그인 후 실제 학급을 지도해 보세요! 👩‍🏫");
+      return;
+    }
     showToast(`'${conceptName}' 오답 학생 ${studentCount}명에게 맞춤형 보충 미션을 전송했습니다!`, "success");
   };
 
@@ -145,6 +180,11 @@ export default function TeacherDashboard() {
   };
 
   const handleSendCoachingReport = async () => {
+    if (isDemoTeacher) {
+      alert("체험용 계정에서는 1:1 코칭 리포트 발행 및 오답 미션 처방이 불가능합니다. 로그인 후 실제 학급을 지도해 보세요! 👩‍🏫");
+      setSelectedStudentForCoaching(null);
+      return;
+    }
     if (!selectedStudentForCoaching) return;
     const actions = [];
     if (coachingOptions.sendToParent) actions.push("가정 통신문 연동");
@@ -153,9 +193,21 @@ export default function TeacherDashboard() {
       await handleSendMission(selectedStudentForCoaching);
     }
 
-    // Save to localStorage under student's ID so student & parent pages can render it dynamically on the same browser origin
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`coaching_feedback_${selectedStudentForCoaching.id}`, coachingFeedbackText);
+    // Save directly to student's profile in Supabase database
+    try {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ coaching_feedback: coachingFeedbackText })
+        .eq("id", selectedStudentForCoaching.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+    } catch (dbErr) {
+      console.warn("DB update failed, using localStorage fallback:", dbErr);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`coaching_feedback_${selectedStudentForCoaching.id}`, coachingFeedbackText);
+      }
     }
 
     showToast(`${selectedStudentForCoaching.name} 학생 1:1 코칭 리포트가 전송되었습니다! (${actions.join(", ")})`, "success");

@@ -3,8 +3,12 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button, Input, Typography } from "@/components/common";
 import { createBrowserSupabaseClient } from "@/services/supabase";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function TeacherSettingsPage() {
+  const { user, isAuthenticated } = useAuth();
+  const isDemoTeacher = !isAuthenticated || (user && user.email === "teacher@loopnote.com");
+
   const [teacherId, setTeacherId] = useState("");
   const [teacherName, setTeacherName] = useState("");
   const [schoolName] = useState("서초초등학교"); // Keep locked for trial authentication
@@ -78,6 +82,21 @@ export default function TeacherSettingsPage() {
             setClassNum(match[2]);
           }
         }
+
+        // 로컬 스토리지에서 세부 피드백/알림 옵션값 복원
+        if (typeof window !== "undefined") {
+          const stored = localStorage.getItem(`teacher_settings_${profile.id}`);
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              if (parsed.socratesDepth) setSocratesDepth(parsed.socratesDepth);
+              if (parsed.targetRate) setTargetRate(parsed.targetRate);
+              if (parsed.notifications) setNotifications(parsed.notifications);
+            } catch (e) {
+              console.warn("로컬 설정 로드 실패:", e);
+            }
+          }
+        }
       }
     } catch (err: any) {
       // console.error를 사용하면 Next.js Turbopack 개발 화면에 빨간색 에러 팝업 오버레이가 발생하므로 console.warn으로 대체하여 안전하게 로깅
@@ -104,6 +123,10 @@ export default function TeacherSettingsPage() {
 
   // ── 설정값 저장 ─────────────────────────────────────────────
   const handleSaveSettings = async () => {
+    if (isDemoTeacher) {
+      alert("체험용 계정에서는 환경설정 저장이 제한됩니다. 로그인 후 내 학급에 맞게 세팅해 보세요! ⚙️");
+      return;
+    }
     setIsSaving(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -121,6 +144,18 @@ export default function TeacherSettingsPage() {
         .eq("id", session.user.id);
 
       if (error) throw error;
+
+      // 로컬 스토리지에 세부 피드백/알림 옵션값 영구 저장
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          `teacher_settings_${session.user.id}`,
+          JSON.stringify({
+            socratesDepth,
+            targetRate,
+            notifications
+          })
+        );
+      }
 
       triggerToast("💾 교사 설정과 AI 소크라테스 튜터 발문 세팅이 성공적으로 반영되었습니다.");
       void loadProfile(); // 데이터 새로고침

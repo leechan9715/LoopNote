@@ -396,13 +396,13 @@ export default function SignupPage() {
 
               {form.role === "student" && (
                 <Input
-                  label="부모님 이메일 또는 연결 코드 (선택)"
+                  label="학부모 또는 선생님 연결 코드 (선택)"
                   name="parent_code"
                   onChange={(event) => {
                     setForm((current) => ({ ...current, parentCode: event.target.value }));
                   }}
-                  placeholder="부모님 이메일 주소를 적어보세요"
-                  helperText="가입 후에 학부모 대시보드와 연결하여 학습 미션을 공유할 수 있습니다."
+                  placeholder="부모님 또는 선생님의 ID 코드를 입력해 주세요"
+                  helperText="선생님 또는 학부모의 고유 ID 코드를 입력하시면 가입과 동시에 실시간으로 매핑되어 회복 학습 미션을 공유받을 수 있습니다."
                   type="text"
                   value={form.parentCode}
                 />

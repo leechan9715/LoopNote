@@ -34,6 +34,7 @@ const defaultProblemText = "분수 1/3과 1/5 중 어느 것이 더 큰지 비�
 export default function RegisterWrongNoteForm() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
+  const isDemoStudent = !isAuthenticated || (user && user.email === "student@loopnote.com");
   const { uploadImage, isUploading, error: storageError } = useStorage();
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
 
@@ -94,6 +95,10 @@ export default function RegisterWrongNoteForm() {
 
   // Submit Handler
   const handleSubmit = async () => {
+    if (isDemoStudent) {
+      alert("체험용 계정에서는 오답 스캔 및 업로드 기능이 제한됩니다. 로그인 후 나의 실제 오답을 스캔해 보세요! 📸");
+      return;
+    }
     setIsSubmitting(true);
     try {
       let finalImageUrl = "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop"; // Default beautiful placeholder

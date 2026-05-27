@@ -122,45 +122,42 @@ export async function generateMission(imageUrl: string): Promise<GeneratedMissio
   const client = getOpenAIClient();
   const model = process.env.OPENAI_VISION_MODEL || DEFAULT_OPENAI_MODEL;
 
-  const response = await client.responses.create({
+  const response = await client.chat.completions.create({
     model,
-    input: [
+    messages: [
       {
-        role: "developer",
-        content: [
-          {
-            type: "input_text",
-            text: missionDeveloperPrompt,
-          },
-        ],
+        role: "system",
+        content: missionDeveloperPrompt,
       },
       {
         role: "user",
         content: [
           {
-            type: "input_text",
+            type: "text",
             text: "이 오답 문제 이미지를 분석해서 초등학생이 스스로 풀 수 있는 3단계 회복 미션 JSON을 만들어줘.",
           },
           {
-            type: "input_image",
-            image_url: imageUrl,
-            detail: "high",
+            type: "image_url",
+            image_url: {
+              url: imageUrl,
+              detail: "high",
+            },
           },
         ],
       },
     ],
-    max_output_tokens: 1400,
-    text: {
-      format: {
-        type: "json_schema",
+    max_tokens: 1400,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
         name: "loopnote_recovery_mission",
         strict: true,
-        schema: missionResponseSchema,
+        schema: missionResponseSchema as any,
       },
     },
   });
 
-  const outputText = response.output_text;
+  const outputText = response.choices[0]?.message?.content;
 
   if (!outputText) {
     throw new Error("AI가 미션 JSON을 반환하지 않았습니다.");
@@ -217,39 +214,29 @@ export async function evaluateStepAnswer(
   const client = getOpenAIClient();
   const model = DEFAULT_OPENAI_MODEL; // gpt-4o
 
-  const response = await client.responses.create({
+  const response = await client.chat.completions.create({
     model,
-    input: [
+    messages: [
       {
-        role: "developer",
-        content: [
-          {
-            type: "input_text",
-            text: evaluationDeveloperPrompt,
-          },
-        ],
+        role: "system",
+        content: evaluationDeveloperPrompt,
       },
       {
         role: "user",
-        content: [
-          {
-            type: "input_text",
-            text: `원래 문제: "${problemText}"\n현재 단계: "${stepTitle}"\n단계 힌트: "${stepHint}"\n학생의 답변: "${studentAnswer}"\n\n이 답변이 맞는지, 혹은 유의미한 풀이 시도인지 평가하고 다정하게 격려해줘.`,
-          },
-        ],
+        content: `원래 문제: "${problemText}"\n현재 단계: "${stepTitle}"\n단계 힌트: "${stepHint}"\n학생의 답변: "${studentAnswer}"\n\n이 답변이 맞는지, 혹은 유의미한 풀이 시도인지 평가하고 다정하게 격려해줘.`,
       },
     ],
-    text: {
-      format: {
-        type: "json_schema",
+    response_format: {
+      type: "json_schema",
+      json_schema: {
         name: "loopnote_answer_evaluation",
         strict: true,
-        schema: evaluationResponseSchema,
+        schema: evaluationResponseSchema as any,
       },
     },
   });
 
-  const outputText = response.output_text;
+  const outputText = response.choices[0]?.message?.content;
   if (!outputText) {
     throw new Error("AI가 평가 결과를 반환하지 않았습니다.");
   }

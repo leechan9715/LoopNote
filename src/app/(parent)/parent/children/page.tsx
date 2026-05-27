@@ -26,10 +26,10 @@ const initialChildForm: ChildFormState = {
   password: "",
 };
 
-function validateChildForm(form: ChildFormState): ChildFormErrors {
+function validateChildForm(form: ChildFormState, mode: "create" | "link"): ChildFormErrors {
   const errors: ChildFormErrors = {};
 
-  if (!form.fullName.trim()) {
+  if (mode === "create" && !form.fullName.trim()) {
     errors.fullName = "자녀 이름을 입력해 주세요.";
   }
 
@@ -37,10 +37,12 @@ function validateChildForm(form: ChildFormState): ChildFormErrors {
     errors.email = "자녀 로그인 이메일을 입력해 주세요.";
   }
 
-  if (!form.password) {
-    errors.password = "자녀 비밀번호를 입력해 주세요.";
-  } else if (form.password.length < 6) {
-    errors.password = "비밀번호는 6자 이상이어야 합니다.";
+  if (mode === "create") {
+    if (!form.password) {
+      errors.password = "자녀 비밀번호를 입력해 주세요.";
+    } else if (form.password.length < 6) {
+      errors.password = "비밀번호는 6자 이상이어야 합니다.";
+    }
   }
 
   return errors;
@@ -48,8 +50,10 @@ function validateChildForm(form: ChildFormState): ChildFormErrors {
 
 export default function ParentChildrenPage() {
   const { isAuthenticated, isLoading: isAuthLoading, session, user } = useAuth();
+  const isDemoParent = !isAuthenticated || (user && user.email === "parent@loopnote.com");
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const [children, setChildren] = useState<ParentChildProfile[]>([]);
+  const [mode, setMode] = useState<"create" | "link">("create");
   const [form, setForm] = useState<ChildFormState>(initialChildForm);
   const [errors, setErrors] = useState<ChildFormErrors>({});
   const [dataError, setDataError] = useState<string | null>(null);
@@ -105,7 +109,12 @@ export default function ParentChildrenPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const nextErrors = validateChildForm(form);
+    if (isDemoParent) {
+      alert("체험용 계정에서는 자녀 등록 및 새 계정 생성이 제한됩니다. 로그인 후 실제 자녀 계정을 연동해 보세요! 👪");
+      return;
+    }
+
+    const nextErrors = validateChildForm(form, mode);
     setErrors(nextErrors);
     setSubmitError(null);
     setSuccessMessage(null);
@@ -119,19 +128,30 @@ export default function ParentChildrenPage() {
     try {
       const child = await addChildProfile({
         accessToken: session.access_token,
+        action: mode,
         email: form.email.trim(),
-        fullName: form.fullName.trim(),
+        fullName: mode === "create" ? form.fullName.trim() : undefined,
         parentId: user.id,
-        password: form.password,
+        password: mode === "create" ? form.password : undefined,
       });
 
-      setChildren((current) => [...current, child]);
+      // 중복 추가 방지 필터 후 업데이트
+      setChildren((current) => {
+        const filtered = current.filter((c) => c.id !== child.id);
+        return [...filtered, child];
+      });
       setForm(initialChildForm);
-      setSuccessMessage(`${child.name} 계정을 연결했습니다.`);
+      
+      if (mode === "create") {
+        setSuccessMessage(`${child.name} 계정을 생성하고 연결했습니다.`);
+      } else {
+        setSuccessMessage(`${child.name} 학생 계정을 내 자녀로 성공적으로 연동했습니다.`);
+      }
+      
       setReloadKey((key) => key + 1);
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "자녀 계정을 추가하지 못했습니다.";
+        error instanceof Error ? error.message : "자녀 계정을 처리하지 못했습니다.";
       setSubmitError(message);
     } finally {
       setIsSubmitting(false);
@@ -151,7 +171,7 @@ export default function ParentChildrenPage() {
           자녀 관리
         </Typography>
         <Typography as="p" className="mt-3 max-w-2xl text-slate-600" variant="body">
-          자녀 전용 계정을 만들고 학부모 계정에 연결합니다.
+          자녀 전용 계정을 새로 만들어 학부모 계정에 연동하거나, 이미 가입된 자녀의 계정을 가져와 연결합니다.
         </Typography>
       </section>
 
@@ -161,29 +181,75 @@ export default function ParentChildrenPage() {
             로그인이 필요합니다.
           </Typography>
           <Typography as="p" className="mt-2 text-slate-600" variant="body">
-            학부모 계정으로 로그인하면 자녀 계정을 추가할 수 있습니다.
+            학부모 계정으로 로그인하면 자녀 계정을 연동하거나 추가할 수 있습니다.
           </Typography>
         </section>
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <section className="rounded-3xl border border-slate-200 bg-white px-5 py-6 shadow-sm">
-          <Typography as="h2" className="text-slate-950" variant="h2">
-            자녀 추가하기
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-5">
+            <Typography as="h2" className="text-slate-950" variant="h2">
+              자녀 연결하기
+            </Typography>
+            {/* 신규 생성 및 기존 연동 탭 스위처 */}
+            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("create");
+                  setErrors({});
+                  setSubmitError(null);
+                  setSuccessMessage(null);
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black transition ${
+                  mode === "create"
+                    ? "bg-[#064e52] text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                새 계정 만들기
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("link");
+                  setErrors({});
+                  setSubmitError(null);
+                  setSuccessMessage(null);
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black transition ${
+                  mode === "link"
+                    ? "bg-[#064e52] text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                기존 계정 연동
+              </button>
+            </div>
+          </div>
+
+          <Typography as="p" className="text-xs text-slate-500 font-bold mb-4">
+            {mode === "create"
+              ? "학습 전용 자녀 계정을 새로 만들어 학부모 대시보드에 즉시 연동합니다."
+              : "학생이 이미 직접 가입한 이메일을 입력하여 내 자녀로 연동을 진행합니다."}
           </Typography>
-          <form className="mt-5 space-y-4" noValidate onSubmit={handleSubmit}>
-            <Input
-              autoComplete="name"
-              errorMessage={errors.fullName}
-              label="자녀 이름"
-              name="child_full_name"
-              onChange={(event) => {
-                setForm((current) => ({ ...current, fullName: event.target.value }));
-              }}
-              placeholder="김루프"
-              required
-              value={form.fullName}
-            />
+
+          <form className="mt-2 space-y-4" noValidate onSubmit={handleSubmit}>
+            {mode === "create" && (
+              <Input
+                autoComplete="name"
+                errorMessage={errors.fullName}
+                label="자녀 이름"
+                name="child_full_name"
+                onChange={(event) => {
+                  setForm((current) => ({ ...current, fullName: event.target.value }));
+                }}
+                placeholder="김루프"
+                required
+                value={form.fullName}
+              />
+            )}
             <Input
               autoComplete="email"
               errorMessage={errors.email}
@@ -198,19 +264,21 @@ export default function ParentChildrenPage() {
               type="email"
               value={form.email}
             />
-            <Input
-              autoComplete="new-password"
-              errorMessage={errors.password}
-              helperText="6자 이상 입력해 주세요."
-              label="자녀 비밀번호"
-              name="child_password"
-              onChange={(event) => {
-                setForm((current) => ({ ...current, password: event.target.value }));
-              }}
-              required
-              type="password"
-              value={form.password}
-            />
+            {mode === "create" && (
+              <Input
+                autoComplete="new-password"
+                errorMessage={errors.password}
+                helperText="6자 이상 입력해 주세요."
+                label="자녀 비밀번호"
+                name="child_password"
+                onChange={(event) => {
+                  setForm((current) => ({ ...current, password: event.target.value }));
+                }}
+                required
+                type="password"
+                value={form.password}
+              />
+            )}
 
             {submitError ? (
               <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800" role="alert">
@@ -229,7 +297,7 @@ export default function ParentChildrenPage() {
               isLoading={isSubmitting}
               type="submit"
             >
-              자녀 계정 만들기
+              {mode === "create" ? "자녀 계정 만들기" : "자녀 계정 연동하기"}
             </Button>
           </form>
         </section>
@@ -283,7 +351,7 @@ export default function ParentChildrenPage() {
           ) : (
             <div className="mt-5 rounded-2xl border border-dashed border-indigo-200 bg-indigo-50 px-4 py-5">
               <Typography as="p" className="text-indigo-900" variant="body">
-                아직 연결된 자녀가 없습니다. 첫 자녀 계정을 만들어 보세요.
+                아직 연결된 자녀가 없습니다. 첫 자녀 계정을 연결해 보세요.
               </Typography>
             </div>
           )}

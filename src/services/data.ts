@@ -108,10 +108,11 @@ export interface UserProfile {
 
 export interface AddChildProfileInput {
   accessToken: string;
+  action?: string;
   email: string;
-  fullName: string;
+  fullName?: string;
   parentId: string;
-  password: string;
+  password?: string;
 }
 
 export interface MissionHintData {

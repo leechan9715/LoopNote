@@ -11,6 +11,7 @@ export type Database = {
           parent_id: string | null;
           teacher_id: string | null;
           class_name: string | null;
+          coaching_feedback: string | null;
           created_at: string;
         };
         Insert: {
@@ -20,6 +21,7 @@ export type Database = {
           parent_id?: string | null;
           teacher_id?: string | null;
           class_name?: string | null;
+          coaching_feedback?: string | null;
           created_at?: string;
         };
         Update: {
@@ -29,6 +31,7 @@ export type Database = {
           parent_id?: string | null;
           teacher_id?: string | null;
           class_name?: string | null;
+          coaching_feedback?: string | null;
           created_at?: string;
         };
         Relationships: [

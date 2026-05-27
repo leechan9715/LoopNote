@@ -60,6 +60,92 @@ export async function GET(request: Request) {
       throw studentsError;
     }
 
+    const isDemoTeacher = user.email?.toLowerCase() === "teacher@loopnote.com";
+
+    // 체험용 교사 계정일 때는 무조건 풍성한 교과 학급 고정 기본 샘플 데이터를 리턴!
+    if (isDemoTeacher) {
+      const demoStudents = [
+        {
+          id: "jiwoo-mock-id",
+          name: "지우",
+          classGroup: "5학년 3반",
+          todayLoops: 1,
+          recoveryRate: 85,
+          confidence: "상",
+          recentAction: "미션 완료",
+          weakConcept: "단위 분수의 크기 비교",
+          coachingFeedback: "지우 학생은 피자 조각 비주얼 가이드를 통해 분수 크기 원리를 극복했습니다! 다음엔 대분수 개념을 훈련해 보세요.",
+          completedMissions: 3,
+          totalQuestions: 4,
+          lastActiveLabel: "오늘",
+        },
+        {
+          id: "minwoo-mock-id",
+          name: "민우",
+          classGroup: "5학년 3반",
+          todayLoops: 0,
+          recoveryRate: 40,
+          confidence: "하",
+          recentAction: "오답 등록됨",
+          weakConcept: "삼각형의 세 각의 크기 합",
+          coachingFeedback: "민우 학생은 세 각의 총합이 180도라는 기하 원리에서 2회 연속 오답을 발생시켰습니다. 1:1 회복 처방 미션 전송을 적극 권장합니다.",
+          completedMissions: 1,
+          totalQuestions: 5,
+          lastActiveLabel: "어제",
+        },
+        {
+          id: "suhyun-mock-id",
+          name: "수현",
+          classGroup: "5학년 3반",
+          todayLoops: 2,
+          recoveryRate: 70,
+          confidence: "중",
+          recentAction: "미션 진행 중",
+          weakConcept: "자연수의 나눗셈",
+          coachingFeedback: "수현 학생은 세 자리 수 나누기 두 자리 수 나눗셈 몫 계산 미션을 2단계 진행 중입니다. 격려로 마무리를 독려해 주세요.",
+          completedMissions: 2,
+          totalQuestions: 3,
+          lastActiveLabel: "오늘",
+        },
+        {
+          id: "yeeun-mock-id",
+          name: "예은",
+          classGroup: "5학년 3반",
+          todayLoops: 0,
+          recoveryRate: 95,
+          confidence: "상",
+          recentAction: "미션 완료",
+          weakConcept: "소수의 첫째 자리 비교",
+          coachingFeedback: "예은 학생은 소수점 원리를 기가막히게 이해하여 이번 주 미션을 단숨에 정복했습니다. 마스터 칭찬으로 자존감을 높여주세요.",
+          completedMissions: 4,
+          totalQuestions: 4,
+          lastActiveLabel: "3일 전",
+        }
+      ];
+
+      const demoTopErrors = [
+        { rank: 1, name: "단위 분수의 크기 비교", students: 3, desc: "3개 오답 문제에서 감지된 취약 패턴" },
+        { rank: 2, name: "삼각형의 세 각의 크기 합", students: 2, desc: "2개 오답 문제에서 감지된 취약 패턴" },
+        { rank: 3, name: "자연수의 나눗셈", students: 1, desc: "1개 오답 문제에서 감지된 취약 패턴" }
+      ];
+
+      return NextResponse.json({
+        teacher: {
+          id: teacherProfile.id,
+          name: teacherProfile.full_name,
+          className: teacherProfile.class_name ?? "5학년 3반",
+        },
+        stats: {
+          totalStudents: 4,
+          avgRecoveryRate: 73,
+          lowConfidenceCount: 1,
+          activeToday: 2,
+        },
+        students: demoStudents,
+        topErrors: demoTopErrors,
+      });
+    }
+
     const now = new Date();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
@@ -115,7 +201,7 @@ export async function GET(request: Request) {
       return {
         id: s.id,
         name: s.full_name,
-        classGroup: s.class_name ?? "미지정 반",
+        classGroup: s.class_name || teacherProfile.class_name || "미지정 반",
         todayLoops: todayQuestions.length,
         recoveryRate,
         confidence,

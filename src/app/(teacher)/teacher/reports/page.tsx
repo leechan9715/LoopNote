@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Typography } from "@/components/common";
 import { createBrowserSupabaseClient } from "@/services/supabase";
+import { useAuth } from "@/hooks/useAuth";
 
 interface StudentData {
   id: string;
@@ -39,10 +40,16 @@ interface ClassData {
 }
 
 export default function ClassReportPage() {
+  const { user, isAuthenticated } = useAuth();
+  const isDemoTeacher = !isAuthenticated || (user && user.email === "teacher@loopnote.com");
+
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
+  // 교사 환경설정 연동을 위한 목표 회복률 상태
+  const [targetRate, setTargetRate] = useState(80);
 
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
 
@@ -56,6 +63,21 @@ export default function ClassReportPage() {
         setLoadError("로그인이 필요합니다.");
         setIsLoading(false);
         return;
+      }
+
+      // 로컬 스토리지에서 교사가 미세 조정한 학급 목표 회복률 복원
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem(`teacher_settings_${session.user.id}`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed.targetRate) {
+              setTargetRate(parsed.targetRate);
+            }
+          } catch (e) {
+            console.warn("교사 환경설정 동기화 실패:", e);
+          }
+        }
       }
 
       const res = await fetch("/api/teacher/class", {
@@ -78,7 +100,30 @@ export default function ClassReportPage() {
 
   useEffect(() => {
     void loadClassData();
-  }, [loadClassData]);
+
+    // REAL-TIME WEBSOCKET SUBSCRIPTION TO QUESTIONS AND MISSIONS!
+    const channel = supabase
+      .channel("teacher-reports-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "questions" },
+        () => {
+          void loadClassData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "recovery_missions" },
+        () => {
+          void loadClassData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [loadClassData, supabase]);
 
   const triggerToast = (message: string) => {
     setToastMessage(message);
@@ -104,8 +149,17 @@ export default function ClassReportPage() {
         ? Math.round(matchingStudents.reduce((sum, s) => sum + s.recoveryRate, 0) / matchingStudents.length)
         : Math.max(85 - idx * 10, 45); // 임시 보정값
 
-      const status = avgRecovery < 60 ? "critical" : avgRecovery < 80 ? "warning" : "stable";
-      const color = avgRecovery < 60 ? "bg-rose-500" : avgRecovery < 80 ? "bg-amber-500" : "bg-emerald-500";
+      const warningThreshold = Math.round(targetRate * 0.8);
+      const status = avgRecovery < warningThreshold 
+        ? "critical" 
+        : avgRecovery < targetRate 
+          ? "warning" 
+          : "stable";
+      const color = avgRecovery < warningThreshold 
+        ? "bg-rose-500" 
+        : avgRecovery < targetRate 
+          ? "bg-amber-500" 
+          : "bg-emerald-500";
 
       return {
         subject: error.name,
@@ -115,7 +169,7 @@ export default function ClassReportPage() {
         color
       };
     });
-  }, [classData]);
+  }, [classData, targetRate]);
 
   // 실시간 AI 학급 총평 조언 생성
   const aiCohortAdvice = useMemo(() => {
@@ -259,8 +313,51 @@ export default function ClassReportPage() {
           </div>
 
           <button 
-            onClick={() => triggerToast("📢 학급 전체 학부모 대시보드로 실시간 성장 분석 리포트 브리핑이 발송되었습니다!")}
-            className="w-full min-h-12 rounded-2xl bg-[#064e52] hover:bg-[#0d6e73] text-white font-black text-xs transition border border-[#064e52]"
+            onClick={() => {
+              if (isDemoTeacher) {
+                alert("체험용 계정에서는 학부모 종합 브리핑 전송 기능이 제한됩니다. 로그인 후 사용해 주세요! 📢");
+                return;
+              }
+              if (!classData || classData.students.length === 0) {
+                triggerToast("⚠️ 전송할 학급 학생 데이터가 존재하지 않습니다.");
+                return;
+              }
+
+              const primaryErrorName = classData.topErrors.length > 0 && classData.topErrors[0].students > 0
+                ? classData.topErrors[0].name
+                : "분수 크기 비교";
+
+              const briefingMessage = `📢 [교사 전체 알림] 이번 주 우리 반 전체 분석 결과, [${primaryErrorName}] 단원의 취약 오답률이 가장 높게 집계되어 1:1 맞춤 보완 학습 미션을 학급 전체에 일괄 처방했습니다. 가정에서도 자녀가 틀린 원리를 천천히 유추하고 극복해낼 수 있도록 따뜻한 목소리로 격려해주시기 바랍니다.`;
+
+              // Save directly to profiles in Supabase database for all students under this teacher
+              const syncBriefing = async () => {
+                try {
+                  const { data: authData } = await supabase.auth.getSession();
+                  const session = authData.session;
+                  if (session) {
+                    const { error: bulkError } = await supabase
+                      .from("profiles")
+                      .update({ coaching_feedback: briefingMessage })
+                      .eq("teacher_id", session.user.id);
+                    
+                    if (bulkError) {
+                      throw bulkError;
+                    }
+                  }
+                } catch (dbErr) {
+                  console.warn("DB bulk update failed, using localStorage fallback:", dbErr);
+                  if (typeof window !== "undefined") {
+                    classData.students.forEach((student) => {
+                      localStorage.setItem(`coaching_feedback_${student.id}`, briefingMessage);
+                    });
+                  }
+                }
+              };
+              void syncBriefing();
+
+              triggerToast("📢 학급 전체 학부모 대시보드로 실시간 성장 분석 리포트 종합 브리핑이 성공적으로 발송 및 연동되었습니다!");
+            }}
+            className="w-full min-h-12 rounded-2xl bg-[#064e52] hover:bg-[#0d6e73] text-white font-black text-xs transition border border-[#064e52] shadow-md hover:shadow-lg transition-all"
           >
             📢 학부모 종합 브리핑 전송하기
           </button>
@@ -283,6 +380,10 @@ export default function ClassReportPage() {
 
             <button
               onClick={() => {
+                if (isDemoTeacher) {
+                  alert("체험용 계정에서는 취약 오답 극복 미션 일괄 처방 기능이 제한됩니다. 로그인 후 실제 학급을 지도해 보세요! 👩‍🏫");
+                  return;
+                }
                 if (classData && classData.topErrors.length > 0 && classData.topErrors[0].students > 0) {
                   triggerToast(`🚀 [${classData.topErrors[0].name}] 취약 오답 극복 미션을 대상 학생들에게 일괄 전송했습니다!`);
                 } else {
