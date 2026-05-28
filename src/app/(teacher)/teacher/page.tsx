@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { createBrowserSupabaseClient } from "@/services/supabase";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -47,7 +48,45 @@ interface Toast {
   type: "success" | "info" | "warning";
 }
 
-// ─── 컴포넌트 ─────────────────────────────────────────────────
+// ─── SVG 벡터 아이콘 ───────────────────────────────────────────
+const Icons = {
+  Refresh: () => (
+    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+  ),
+  Search: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
+  ),
+  ChevronRight: () => (
+    <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+    </svg>
+  ),
+  Alert: () => (
+    <svg className="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+    </svg>
+  ),
+  Lightning: () => (
+    <svg className="w-4 h-4 text-brand-lime" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+    </svg>
+  ),
+  Check: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+    </svg>
+  ),
+  Close: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ),
+};
+
 export default function TeacherDashboard() {
   const { user, isAuthenticated } = useAuth();
   const isDemoTeacher = !isAuthenticated || (user && user.email === "teacher@loopnote.com");
@@ -103,7 +142,6 @@ export default function TeacherDashboard() {
   useEffect(() => {
     void loadClassData();
 
-    // REAL-TIME WEBSOCKET SUBSCRIPTION TO QUESTIONS AND MISSIONS!
     const channel = supabase
       .channel("teacher-class-sync")
       .on(
@@ -136,7 +174,7 @@ export default function TeacherDashboard() {
   // ── 미션 전송 ────────────────────────────────────────────────
   const handleSendMission = async (student: StudentData) => {
     if (isDemoTeacher) {
-      alert("체험용 계정에서는 1:1 코칭 리포트 발행 및 오답 미션 처방이 불가능합니다. 로그인 후 실제 학급을 지도해 보세요! 👩‍🏫");
+      alert("체험용 계정에서는 1:1 코칭 리포트 발행 및 오답 미션 처방이 불가능합니다. 로그인 후 실제 학급을 지도해 보세요!");
       return;
     }
     setSendingMission(student.id);
@@ -156,8 +194,8 @@ export default function TeacherDashboard() {
       const result = await res.json() as { success?: boolean; message?: string; error?: string };
       if (!res.ok) throw new Error(result.error ?? "미션 전송 실패");
 
-      showToast(`⚡ ${student.name} 학생의 오답 미션이 활성화되었습니다!`, "success");
-      void loadClassData(); // 데이터 새로고침
+      showToast(`${student.name} 학생의 오답 미션이 활성화되었습니다!`, "success");
+      void loadClassData();
     } catch (err: any) {
       showToast(`미션 전송 실패: ${err?.message}`, "warning");
     } finally {
@@ -167,7 +205,7 @@ export default function TeacherDashboard() {
 
   const handleSendRecommendedMission = (conceptName: string, studentCount: number) => {
     if (isDemoTeacher) {
-      alert("체험용 계정에서는 1:1 코칭 리포트 발행 및 오답 미션 처방이 불가능합니다. 로그인 후 실제 학급을 지도해 보세요! 👩‍🏫");
+      alert("체험용 계정에서는 1:1 코칭 리포트 발행 및 오답 미션 처방이 불가능합니다. 로그인 후 실제 학급을 지도해 보세요!");
       return;
     }
     showToast(`'${conceptName}' 오답 학생 ${studentCount}명에게 맞춤형 보충 미션을 전송했습니다!`, "success");
@@ -181,7 +219,7 @@ export default function TeacherDashboard() {
 
   const handleSendCoachingReport = async () => {
     if (isDemoTeacher) {
-      alert("체험용 계정에서는 1:1 코칭 리포트 발행 및 오답 미션 처방이 불가능합니다. 로그인 후 실제 학급을 지도해 보세요! 👩‍🏫");
+      alert("체험용 계정에서는 1:1 코칭 리포트 발행 및 오답 미션 처방이 불가능합니다. 로그인 후 실제 학급을 지도해 보세요!");
       setSelectedStudentForCoaching(null);
       return;
     }
@@ -193,7 +231,6 @@ export default function TeacherDashboard() {
       await handleSendMission(selectedStudentForCoaching);
     }
 
-    // Save directly to student's profile in Supabase database
     try {
       const { error: updateError } = await supabase
         .from("profiles")
@@ -242,23 +279,23 @@ export default function TeacherDashboard() {
   // ── 로딩 / 에러 상태 ─────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-80 gap-4 text-slate-500">
-        <div className="w-10 h-10 rounded-full border-4 border-[#064e52] border-t-transparent animate-spin" />
-        <span className="text-sm font-bold">학급 데이터를 불러오는 중...</span>
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-6 text-brand-teal">
+        <div className="w-12 h-12 rounded-full border-2 border-brand-teal border-t-brand-lime animate-spin" />
+        <span className="text-sm font-medium tracking-widest font-sans uppercase">Loading Analytics Console</span>
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="flex flex-col items-center justify-center h-80 gap-4">
-        <span className="text-4xl">⚠️</span>
-        <span className="text-sm font-bold text-slate-700">{loadError}</span>
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-5 border border-rose-500/10 rounded-[2.5rem] bg-rose-500/5 max-w-xl mx-auto p-8 text-center">
+        <Icons.Alert />
+        <span className="text-sm font-semibold text-rose-500/95 font-sans leading-relaxed">{loadError}</span>
         <button
           onClick={() => void loadClassData()}
-          className="bg-[#064e52] text-white text-xs font-black px-5 py-2.5 rounded-2xl hover:bg-[#0d6e73] transition"
+          className="bg-brand-teal text-white text-xs font-bold px-6 py-3 rounded-full hover:bg-brand-teal-light transition duration-300 font-sans tracking-wider uppercase active:scale-95 shadow-lg shadow-brand-teal/20"
         >
-          다시 시도하기
+          Retry Connection
         </button>
       </div>
     );
@@ -267,170 +304,173 @@ export default function TeacherDashboard() {
   // 담당 학생이 없는 경우 안내 화면
   if (allStudents.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-80 gap-4 text-center">
-        <span className="text-5xl">🏫</span>
-        <h2 className="text-lg font-black text-slate-800">아직 담당 학생이 없습니다</h2>
-        <p className="text-sm text-slate-500 font-semibold max-w-sm">
-          학생 계정 가입 시 <span className="font-black text-[#064e52]">teacher_id</span>에 선생님 계정 ID를 연결하거나,
-          Supabase에서 직접 학생 profiles에 teacher_id를 설정해 주세요.
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-6 text-center max-w-xl mx-auto p-12 border border-slate-200/50 rounded-[3rem] bg-white/40 backdrop-blur-md">
+        <div className="w-16 h-16 rounded-full bg-brand-teal/5 flex items-center justify-center text-brand-teal font-serif text-2xl border border-brand-teal/10">C</div>
+        <h2 className="text-xl font-bold tracking-tight text-brand-teal font-sans">No Students Associated</h2>
+        <p className="text-xs text-slate-500 font-medium leading-relaxed">
+          Students must enter your Teacher ID during registration, or profiles can be updated manually in Supabase.
         </p>
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-600 max-w-md text-left">
-          <p className="font-black text-[#064e52] mb-1">내 선생님 계정 ID:</p>
-          <p className="break-all">{classData?.teacher.id ?? "로딩 중..."}</p>
+        <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-5 text-[10px] font-mono text-slate-500 w-full text-left">
+          <p className="font-bold text-brand-teal mb-1.5 uppercase tracking-wider">Your Unique Teacher ID:</p>
+          <p className="break-all select-all font-semibold bg-white p-2.5 rounded border border-slate-250/20">{classData?.teacher.id ?? "Loading..."}</p>
         </div>
-        <button onClick={() => void loadClassData()} className="bg-[#064e52] text-white text-xs font-black px-5 py-2.5 rounded-2xl hover:bg-[#0d6e73] transition">
-          새로고침
+        <button onClick={() => void loadClassData()} className="bg-brand-teal text-white text-xs font-bold px-6 py-3 rounded-full hover:bg-brand-teal-light transition duration-300 font-sans tracking-wider uppercase active:scale-95 shadow-lg shadow-brand-teal/20">
+          Refresh Connection
         </button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-8 select-none">
+    <div className="flex flex-col gap-10 select-none animate-in fade-in duration-500 font-sans pb-20">
+      
       {/* Toast Notifications */}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none">
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none">
         {toasts.map((toast) => (
-          <div key={toast.id} className="flex items-center gap-3 bg-brand-teal text-white px-5 py-4 rounded-2xl shadow-2xl border-2 border-brand-teal-light animate-slide-in pointer-events-auto max-w-md">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-lime text-brand-teal-dark font-black text-xs">✓</div>
-            <span className="font-extrabold text-sm leading-relaxed">{toast.message}</span>
+          <div key={toast.id} className="flex items-center gap-3.5 bg-brand-teal-dark/95 text-white px-5 py-4 rounded-2xl shadow-2xl border border-white/10 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300 pointer-events-auto max-w-sm">
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-lime text-brand-teal font-bold">
+              <Icons.Check />
+            </div>
+            <span className="font-semibold text-xs leading-relaxed font-sans">{toast.message}</span>
           </div>
         ))}
       </div>
 
-      {/* ── HEADER ─────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
-        <div>
-          <h1 className="text-3xl font-black text-brand-teal tracking-tight">
-            클래스 오답 분석 대시보드
-          </h1>
-          <p className="text-slate-500 text-sm font-semibold mt-1">
-            {classData?.teacher.className} · 총 {stats?.totalStudents ?? 0}명 · 실시간 오답 분석 기반 맞춤형 학습 처방
-          </p>
+      {/* ── HEADER HERO FRAME ─────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-brand-teal-dark border border-white/5 shadow-2xl min-h-[220px] flex items-center">
+        {/* Banner Backdrop */}
+        <div className="absolute inset-0 opacity-40 mix-blend-luminosity hover:opacity-55 transition-opacity duration-700">
+          <Image 
+            src="/teacher_dashboard_banner.png" 
+            alt="Teacher Analytics Waves" 
+            fill 
+            priority
+            className="object-cover" 
+          />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-black text-brand-teal-light uppercase tracking-wider">과목</span>
-            <select
-              value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
-              className="min-h-10 px-3 bg-white border-2 border-slate-200 hover:border-brand-teal rounded-xl text-xs font-black text-slate-700 transition focus:outline-none focus:ring-2 focus:ring-brand-teal/20"
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-teal-dark via-brand-teal-dark/80 to-transparent" />
+        
+        <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full">
+          <div className="space-y-3 max-w-2xl">
+            <span className="inline-block text-[9px] font-bold bg-brand-lime text-brand-teal px-3 py-1 rounded-md uppercase tracking-widest font-sans">
+              Analytical Matrix
+            </span>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight font-sans uppercase">
+              학급 오답 분석 콘솔
+            </h1>
+            <p className="text-teal-100/70 text-xs font-semibold leading-relaxed max-w-xl">
+              {classData?.teacher.className} · 실시간 코호트 오답 유형 분류 및 1:1 보충 학습 설계용 스마트 텔레메트리 보드입니다.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[8px] font-bold text-teal-350 uppercase tracking-widest leading-none">Subject Sector</span>
+              <select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                className="min-h-10 px-4 bg-white/10 hover:bg-white/15 border border-white/10 hover:border-brand-lime/30 rounded-xl text-xs font-bold text-white transition focus:outline-none focus:ring-1 focus:ring-brand-lime cursor-pointer"
+              >
+                <option value="all" className="bg-brand-teal-dark text-white">전체 과목 (All)</option>
+                <option value="math" className="bg-brand-teal-dark text-white">수학 (Mathematics)</option>
+                <option value="korean" className="bg-brand-teal-dark text-white">국어 (Language Arts)</option>
+              </select>
+            </div>
+            <button
+              onClick={() => void loadClassData()}
+              className="mt-3.5 min-h-10 px-4.5 bg-brand-lime hover:bg-brand-lime-hover text-brand-teal rounded-xl text-xs font-bold transition duration-300 active:scale-95 flex items-center gap-2 shadow-md shadow-brand-lime/10 cursor-pointer"
             >
-              <option value="all">전체 과목</option>
-              <option value="math">수학</option>
-              <option value="korean">국어</option>
-            </select>
+              <Icons.Refresh />
+              <span>REFRESH</span>
+            </button>
           </div>
-          <button
-            onClick={() => void loadClassData()}
-            className="mt-4 min-h-10 px-4 bg-white border-2 border-slate-200 hover:border-brand-teal rounded-xl text-xs font-black text-slate-600 hover:text-brand-teal transition"
-          >
-            🔄 새로고침
-          </button>
         </div>
       </div>
 
-      {/* ── SUMMARY KPI CARDS ──────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-slate-500">전체 학생 수</span>
-            <span className="p-1 rounded-lg bg-teal-50 text-brand-teal font-black text-[10px]">전체</span>
+      {/* ── KPI METRIC PANELS ─────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        {[
+          { label: "전체 학생", val: stats?.totalStudents ?? 0, suffix: "명", desc: "분석 활성 학습 그룹", type: "standard" },
+          { label: "학급 평균 회복률", val: `${stats?.avgRecoveryRate ?? 0}%`, suffix: "", desc: "오답 미션 달성 성공 지수", type: "lime" },
+          { label: "오늘 활동 학생", val: stats?.activeToday ?? 0, suffix: "명", desc: "실시간 학습 루프 동기화", type: "standard" },
+          { label: "집중 케어 필요", val: stats?.lowConfidenceCount ?? 0, suffix: "명", valColor: "text-rose-500", desc: "자신감 지표 하위 집중군", type: "rose" }
+        ].map((card, idx) => (
+          <div key={idx} className="glass-card p-6 rounded-[2rem] flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] hover:shadow-lg relative overflow-hidden group">
+            {card.type === "lime" && <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-brand-lime/10 to-transparent rounded-bl-full pointer-events-none" />}
+            {card.type === "rose" && <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-rose-500/10 to-transparent rounded-bl-full pointer-events-none" />}
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{card.label}</span>
+              <span className="text-[9px] font-bold text-slate-400 bg-slate-100 border border-slate-200/50 px-2 py-0.5 rounded uppercase tracking-wider">kpi.{idx + 1}</span>
+            </div>
+            <div className="mt-6 flex items-baseline gap-1">
+              <span className={`text-4xl font-extrabold tracking-tight ${card.valColor || "text-brand-teal"} font-sans`}>{card.val}</span>
+              {card.suffix && <span className="text-slate-400 text-xs font-semibold">{card.suffix}</span>}
+            </div>
+            <div className="mt-2 text-[10px] text-slate-450 font-semibold">{card.desc}</div>
           </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-brand-teal">{stats?.totalStudents ?? 0}</span>
-            <span className="text-slate-400 text-xs font-bold">명</span>
-          </div>
-          <div className="mt-2 text-[10px] text-slate-400 font-bold">LoopNote 오답 피드백 진행 중</div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-slate-500">평균 회복률</span>
-            <span className="p-1 px-1.5 rounded-lg bg-emerald-50 text-emerald-600 font-black text-[10px]">이번 주</span>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-brand-teal">{stats?.avgRecoveryRate ?? 0}%</span>
-          </div>
-          <div className="mt-2 text-[10px] text-slate-400 font-bold">완료 미션 / 전체 미션 비율</div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-slate-500">오늘 활동 학생</span>
-            <span className="p-1 rounded-lg bg-amber-50 text-amber-600 font-black text-[10px]">오늘</span>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-brand-teal">{stats?.activeToday ?? 0}</span>
-            <span className="text-slate-400 text-xs font-bold">명</span>
-          </div>
-          <div className="mt-2 text-[10px] text-slate-400 font-bold">오늘 오답 등록 학생 수</div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border-2 border-slate-100 shadow-sm flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-slate-500">집중 케어 필요</span>
-            <span className="p-1 px-1.5 rounded-lg bg-rose-50 text-rose-600 font-black text-[10px]">주의</span>
-          </div>
-          <div className="mt-4 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-rose-600">{stats?.lowConfidenceCount ?? 0}</span>
-            <span className="text-slate-400 text-xs font-bold">명</span>
-          </div>
-          <div className="mt-2 text-[10px] text-slate-400 font-bold">회복률 50% 미만 학생</div>
-        </div>
+        ))}
       </div>
 
-      {/* ── TWO COLUMN: TOP ERRORS + CHART ────────────────────── */}
+      {/* ── TWO COLUMN: COHORT TOP ERRORS + VISUAL HEATMAP ────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
         {/* 공통 오류 유형 TOP */}
-        <div className="bg-white rounded-2xl border-2 border-slate-100 shadow-sm p-6 flex flex-col gap-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-teal text-brand-lime font-black text-xs">
+        <div className="glass-card rounded-[2rem] p-8 flex flex-col gap-6 relative">
+          <div className="flex items-center justify-between border-b border-slate-200/40 pb-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-brand-teal text-white font-extrabold text-[10.5px] font-sans shadow-sm">
                 {topErrors.length}
               </span>
-              <h2 className="text-lg font-black text-brand-teal">공통 오류 유형 TOP {topErrors.length}</h2>
+              <h2 className="text-sm font-extrabold text-brand-teal uppercase tracking-widest">공통 취약점 TOP {topErrors.length}</h2>
             </div>
-            <span className="text-[11px] font-bold text-slate-400">실제 오답 텍스트 AI 분석</span>
+            <span className="text-[9px] font-bold text-slate-400 tracking-widest uppercase">Patterns Classify</span>
           </div>
 
-          <div className="flex flex-col gap-4 flex-1">
+          <div className="flex flex-col gap-4 flex-grow">
             {topErrors.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
-                <span className="text-3xl">📭</span>
-                <span className="text-xs font-bold">학생 오답 데이터가 쌓이면 자동 분석됩니다.</span>
+              <div className="flex flex-col items-center justify-center py-16 text-slate-450 gap-3 border border-dashed border-slate-200 rounded-2xl bg-slate-50/20">
+                <span className="text-xs font-semibold">데이터 분석을 대기하고 있습니다.</span>
               </div>
             )}
             {topErrors.map((error, idx) => {
               const percentages = [85, 68, 52, 38, 20];
               const percent = percentages[idx] ?? 15;
+              
+              const rankColor = error.rank === 1 
+                ? "bg-rose-550 text-white shadow-rose-300" 
+                : error.rank === 2 
+                  ? "bg-amber-550 text-white shadow-amber-300" 
+                  : "bg-slate-200 text-slate-700";
+
               return (
-                <div key={error.rank} className="group p-4 bg-slate-50 hover:bg-slate-100/70 border border-slate-100 hover:border-slate-200 rounded-xl transition flex flex-col gap-2">
+                <div key={error.rank} className="group p-4 bg-white/60 border border-slate-100 hover:border-slate-200 rounded-2xl transition-all duration-300 flex flex-col gap-4 hover:shadow-sm hover:scale-[1.005]">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex gap-2.5">
-                      <span className={["flex h-5 w-5 shrink-0 items-center justify-center rounded text-[11px] font-black",
-                        error.rank === 1 ? "bg-rose-500 text-white" : error.rank === 2 ? "bg-amber-500 text-white" : "bg-slate-300 text-slate-700"
-                      ].join(" ")}>{error.rank}</span>
+                    <div className="flex gap-3">
+                      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] font-bold uppercase ${rankColor}`}>
+                        r.{error.rank}
+                      </span>
                       <div className="min-w-0">
-                        <span className="font-extrabold text-sm text-slate-800 block">{error.name}</span>
-                        <span className="text-[11px] font-semibold text-slate-400 block mt-0.5 leading-relaxed">{error.desc}</span>
+                        <span className="font-bold text-xs text-slate-800 block tracking-tight">{error.name}</span>
+                        <span className="text-[10px] font-semibold text-slate-400 block mt-1 leading-relaxed">{error.desc}</span>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-rose-600 shrink-0 bg-white border border-slate-200 rounded-md px-1.5 py-0.5 shadow-sm">
-                      {error.students}건
+                    <span className="text-[9px] font-bold text-rose-500 shrink-0 bg-rose-50 border border-rose-100/50 rounded px-2 py-0.5 shadow-sm">
+                      {error.students}건 검출
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 mt-1">
-                    <div className="flex-1 bg-slate-200 h-2 rounded-full overflow-hidden">
-                      <div className={["h-full rounded-full transition-all duration-500",
-                        error.rank === 1 ? "bg-rose-500" : error.rank === 2 ? "bg-amber-500" : "bg-brand-teal"
-                      ].join(" ")} style={{ width: `${percent}%` }} />
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full transition-all duration-1000 ${
+                        error.rank === 1 ? "bg-rose-500" : error.rank === 2 ? "bg-amber-400" : "bg-brand-teal"
+                      }`} style={{ width: `${percent}%` }} />
                     </div>
                     <button
                       onClick={() => handleSendRecommendedMission(error.name, error.students)}
-                      className="shrink-0 text-[11px] font-black bg-brand-lime hover:bg-brand-lime-hover text-brand-teal-dark px-3 py-1.5 rounded-lg border-2 border-transparent transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-lime"
+                      className="shrink-0 text-[10px] font-bold bg-brand-lime hover:bg-brand-lime-hover text-brand-teal px-3.5 py-1.5 rounded-lg transition-all duration-200 active:scale-95 cursor-pointer shadow-sm"
                       type="button"
                     >
-                      추천 미션 전송
+                      AI 보충미션 활성화
                     </button>
                   </div>
                 </div>
@@ -440,68 +480,71 @@ export default function TeacherDashboard() {
         </div>
 
         {/* 취약 단원 시각화 */}
-        <div className="bg-white rounded-2xl border-2 border-slate-100 shadow-sm p-6 flex flex-col gap-5">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h2 className="text-lg font-black text-brand-teal">학급 현황 요약</h2>
-            <div className="flex bg-slate-100 p-1 rounded-xl">
+        <div className="glass-card rounded-[2rem] p-8 flex flex-col gap-6">
+          <div className="flex items-center justify-between border-b border-slate-200/40 pb-4">
+            <h2 className="text-sm font-extrabold text-brand-teal uppercase tracking-widest">학급 성장 코호트 분석</h2>
+            <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200/30">
               {(["chart", "map"] as const).map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
-                  className={["px-3 py-1 rounded-lg text-xs font-black transition",
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                     activeTab === tab ? "bg-white text-brand-teal shadow-sm" : "text-slate-500 hover:text-slate-700"
-                  ].join(" ")} type="button">
-                  {tab === "chart" ? "회복률 분포" : "활동 현황"}
+                  }`} type="button">
+                  {tab === "chart" ? "자신감 분포" : "오늘 활동 현황"}
                 </button>
               ))}
             </div>
           </div>
 
           {activeTab === "chart" ? (
-            <div className="flex-1 flex flex-col gap-4 justify-center">
+            <div className="flex-grow flex flex-col gap-6 justify-center">
               {/* 회복률 분포 차트 */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-8 py-2">
-                <div className="relative flex items-center justify-center">
+                <div className="relative flex items-center justify-center animate-float">
                   <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                    <path className="text-slate-100" strokeWidth="3.5" stroke="currentColor" fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path className="text-emerald-500 transition-all duration-1000"
-                      strokeDasharray={`${stats?.avgRecoveryRate ?? 0}, 100`}
-                      strokeWidth="3.5" strokeLinecap="round" stroke="currentColor" fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="rgba(6,78,82,0.03)" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="url(#teacherGaugeGrad)" strokeWidth="3" strokeDasharray={`${stats?.avgRecoveryRate ?? 0}, 100`} strokeLinecap="round" className="transition-all duration-1000" />
+                    <defs>
+                      <linearGradient id="teacherGaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#064e52" />
+                        <stop offset="100%" stopColor="#ccff00" />
+                      </linearGradient>
+                    </defs>
                   </svg>
                   <div className="absolute flex flex-col items-center justify-center">
-                    <span className="text-2xl font-black text-slate-800">{stats?.avgRecoveryRate ?? 0}%</span>
-                    <span className="text-[10px] font-black text-emerald-500">평균 회복률</span>
+                    <span className="text-2xl font-extrabold text-brand-teal tracking-tighter font-sans">{stats?.avgRecoveryRate ?? 0}%</span>
+                    <span className="text-[7.5px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">Recovery Avg</span>
                   </div>
                 </div>
-                <div className="flex flex-col gap-3 flex-1 w-full">
-                  <span className="text-xs font-black text-brand-teal-dark border-b-2 border-slate-100 pb-1.5 block">자신감 분포</span>
+                
+                <div className="flex flex-col gap-3 flex-grow w-full">
+                  <span className="text-[10px] font-bold text-brand-teal border-b border-slate-100 pb-1.5 block tracking-wider uppercase">Confidence Levels</span>
                   {[
-                    { label: "높음 (상)", count: allStudents.filter(s => s.confidence === "상").length, color: "bg-emerald-400" },
-                    { label: "보통 (중)", count: allStudents.filter(s => s.confidence === "중").length, color: "bg-amber-400" },
-                    { label: "낮음 (하)", count: allStudents.filter(s => s.confidence === "하").length, color: "bg-rose-400" },
+                    { label: "완벽 복구 (상)", count: allStudents.filter(s => s.confidence === "상").length, color: "bg-emerald-450" },
+                    { label: "복구 중 (중)", count: allStudents.filter(s => s.confidence === "중").length, color: "bg-amber-450" },
+                    { label: "복구 정체 (하)", count: allStudents.filter(s => s.confidence === "하").length, color: "bg-rose-450" },
                   ].map(({ label, count, color }) => (
-                    <div key={label} className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <div key={label} className="flex items-center gap-2.5 text-xs font-bold text-slate-600">
                       <span className={`h-2 w-2 rounded-full ${color}`} />
-                      <span className="flex-1">{label}</span>
-                      <span>{count}명</span>
+                      <span className="flex-1 font-semibold">{label}</span>
+                      <span className="font-extrabold text-slate-800">{count}명</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 bg-slate-50 border border-slate-100 p-4 rounded-xl">
-                <span className="text-xs font-black text-brand-teal">회복률 구간별 학생 수</span>
+              <div className="flex flex-col gap-3.5 bg-slate-50/50 border border-slate-150/40 p-5 rounded-2xl">
+                <span className="text-[9px] font-bold text-brand-teal uppercase tracking-widest">회복률 분포 통계</span>
                 {[
                   { label: "80% 이상 (우수)", count: allStudents.filter(s => s.recoveryRate >= 80).length, color: "bg-emerald-400" },
                   { label: "50~79% (보통)", count: allStudents.filter(s => s.recoveryRate >= 50 && s.recoveryRate < 80).length, color: "bg-amber-400" },
-                  { label: "50% 미만 (집중관리)", count: allStudents.filter(s => s.recoveryRate < 50).length, color: "bg-rose-400" },
+                  { label: "50% 미만 (집중관리)", count: allStudents.filter(s => s.recoveryRate < 50).length, color: "bg-rose-450" },
                 ].map(({ label, count, color }) => (
-                  <div key={label}>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-600 mb-1">
-                      <span>{label}</span><span>{count}명</span>
+                  <div key={label} className="space-y-1.5">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                      <span>{label}</span><span className="font-extrabold">{count}명</span>
                     </div>
-                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                      <div className={`h-full ${color} rounded-full`}
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className={`h-full ${color} rounded-full transition-all duration-500`}
                         style={{ width: allStudents.length > 0 ? `${(count / allStudents.length) * 100}%` : "0%" }} />
                     </div>
                   </div>
@@ -509,38 +552,38 @@ export default function TeacherDashboard() {
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col gap-3 py-1">
-              <p className="text-xs font-bold text-slate-500">오늘 활동 중인 학생</p>
-              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+            <div className="flex-grow flex flex-col gap-4 py-1">
+              <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">오늘 활동 중인 학생 (Active Today)</p>
+              <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                 {allStudents.filter(s => s.todayLoops > 0).length === 0 ? (
-                  <p className="text-xs text-slate-400 py-6 text-center">오늘 활동한 학생이 없습니다.</p>
+                  <p className="text-xs text-slate-450 py-8 text-center font-semibold">오늘 활동한 학생이 없습니다.</p>
                 ) : (
                   allStudents.filter(s => s.todayLoops > 0).map(s => (
-                    <div key={s.id} className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-teal text-white text-xs font-black shrink-0">{s.name[0]}</span>
+                    <div key={s.id} className="flex items-center gap-3.5 p-3.5 bg-white border border-slate-100 rounded-2xl shadow-sm transition hover:scale-[1.005]">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-teal text-white text-xs font-bold shrink-0">{s.name[0]}</span>
                       <div className="min-w-0 flex-1">
-                        <span className="block text-xs font-black text-slate-800">{s.name}</span>
-                        <span className="block text-[10px] text-slate-400 font-semibold">{s.recentAction}</span>
+                        <span className="block text-xs font-bold text-slate-800">{s.name}</span>
+                        <span className="block text-[10px] text-slate-400 font-semibold truncate mt-0.5">{s.recentAction}</span>
                       </div>
-                      <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">{s.todayLoops}개 루프</span>
+                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded">{s.todayLoops}개 루프</span>
                     </div>
                   ))
                 )}
               </div>
 
-              <p className="text-xs font-bold text-slate-500 mt-2">최근 미활동 학생 (집중 케어)</p>
+              <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-4">최근 미활동 학생 (Inactive / Care Required)</p>
               <div className="space-y-2">
                 {allStudents.filter(s => s.todayLoops === 0 && s.confidence === "하").slice(0, 3).map(s => (
-                  <div key={s.id} className="flex items-center gap-3 p-3 bg-rose-50 border border-rose-100 rounded-xl">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-200 text-rose-700 text-xs font-black shrink-0">{s.name[0]}</span>
+                  <div key={s.id} className="flex items-center gap-3.5 p-3.5 bg-rose-500/5 border border-rose-500/10 rounded-2xl">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-rose-700 text-xs font-bold shrink-0">{s.name[0]}</span>
                     <div className="min-w-0 flex-1">
-                      <span className="block text-xs font-black text-slate-800">{s.name}</span>
-                      <span className="block text-[10px] text-rose-500 font-semibold">{s.lastActiveLabel} 마지막 활동</span>
+                      <span className="block text-xs font-bold text-slate-800">{s.name}</span>
+                      <span className="block text-[10px] text-rose-500 font-semibold mt-0.5">{s.lastActiveLabel} 마지막 활동</span>
                     </div>
                     <button onClick={() => void handleSendMission(s)}
                       disabled={sendingMission === s.id}
-                      className="text-[10px] font-black bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 text-white px-2.5 py-1 rounded-lg transition">
-                      {sendingMission === s.id ? "전송 중..." : "미션 활성화"}
+                      className="text-[9.5px] font-bold bg-rose-500 hover:bg-rose-600 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg transition active:scale-95 cursor-pointer">
+                      {sendingMission === s.id ? "전송 중" : "보충처방 활성"}
                     </button>
                   </div>
                 ))}
@@ -550,33 +593,35 @@ export default function TeacherDashboard() {
         </div>
       </div>
 
-      {/* ── STUDENT TABLE ─────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border-2 border-slate-100 shadow-sm p-6 flex flex-col gap-6">
+      {/* ── STUDENT TELEMETRY TABLE ───────────────────────────── */}
+      <div className="glass-card rounded-[2rem] p-8 flex flex-col gap-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-black text-brand-teal">학생별 오답 루프 및 성장 현황</h2>
-            <p className="text-xs font-semibold text-slate-400 mt-0.5">실제 데이터 기반 실시간 모니터링</p>
+            <h2 className="text-sm font-extrabold text-brand-teal uppercase tracking-widest">학생별 실시간 오답 성적표</h2>
+            <p className="text-xs font-semibold text-slate-400 mt-1">클래스 학생들의 데이터 실시간 모니터링 보드</p>
           </div>
+          
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative">
-              <input type="text" placeholder="이름 또는 오답 검색..."
+              <input type="text" placeholder="학생 이름 또는 취약오답 검색..."
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                className="min-h-10 pl-9 pr-4 bg-slate-50 border-2 border-slate-200 hover:border-brand-teal rounded-xl text-xs font-bold text-slate-700 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-teal/20 w-60" />
-              <svg className="absolute left-3 top-3 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+                className="min-h-10 pl-9 pr-4 bg-slate-50 border border-slate-200 focus:border-brand-teal rounded-xl text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none transition w-60" />
+              <div className="absolute left-3 top-3.5 text-slate-405">
+                <Icons.Search />
+              </div>
             </div>
-            <div className="flex bg-slate-100 p-1 rounded-xl">
+            
+            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/50">
               {[
                 { id: "all", label: "전체" },
                 { id: "wrong", label: "취약 오답" },
-                { id: "lowConfidence", label: "집중 케어" },
-                { id: "completed", label: "미션 완료" },
+                { id: "lowConfidence", label: "집중 관리" },
+                { id: "completed", label: "마스터 완료" },
               ].map((btn) => (
                 <button key={btn.id} onClick={() => setStudentFilter(btn.id)}
-                  className={["px-3 py-1.5 rounded-lg text-xs font-black transition",
-                    studentFilter === btn.id ? "bg-white text-brand-teal shadow-sm" : "text-slate-500 hover:text-slate-700"
-                  ].join(" ")} type="button">
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 cursor-pointer ${
+                    studentFilter === btn.id ? "bg-white text-brand-teal shadow-sm" : "text-slate-500 hover:text-slate-750"
+                  }`} type="button">
                   {btn.label}
                 </button>
               ))}
@@ -584,30 +629,30 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        <div className="overflow-x-auto border border-slate-100 rounded-2xl">
-          <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
-            <thead className="bg-slate-50/70 font-black text-slate-500 text-xs">
+        <div className="overflow-x-auto border border-slate-100 rounded-2xl bg-white/50">
+          <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
+            <thead className="bg-brand-teal/5 font-bold text-brand-teal text-[10.5px]">
               <tr>
-                <th className="px-5 py-4">이름</th>
+                <th className="px-5 py-4 rounded-tl-2xl">이름</th>
                 <th className="px-5 py-4">학급/반</th>
-                <th className="px-5 py-4 text-center">오늘 활동</th>
-                <th className="px-5 py-4">회복률</th>
+                <th className="px-5 py-4 text-center">오늘 루프</th>
+                <th className="px-5 py-4">회복지수</th>
                 <th className="px-5 py-4 text-center">자신감</th>
                 <th className="px-5 py-4">최근 활동</th>
-                <th className="px-5 py-4 text-right">피드백 관리</th>
+                <th className="px-5 py-4 text-right rounded-tr-2xl">피드백 처방</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white font-extrabold text-slate-700">
+            <tbody className="divide-y divide-slate-100 bg-white/70 font-semibold text-slate-650">
               {filteredStudents.map((student) => {
                 const confStyles = {
-                  상: "bg-emerald-50 text-emerald-600 border border-emerald-200",
-                  중: "bg-sky-50 text-sky-600 border border-sky-200",
-                  하: "bg-rose-50 text-rose-600 border border-rose-200",
+                  상: "bg-emerald-50 text-emerald-600 border border-emerald-150",
+                  중: "bg-sky-50 text-sky-600 border border-sky-150",
+                  하: "bg-rose-50 text-rose-600 border border-rose-150",
                 }[student.confidence];
 
                 const actDot: Record<string, string> = {
                   "미션 완료": "bg-emerald-500",
-                  "미션 진행 중": "bg-blue-400",
+                  "미션 진행 중": "bg-blue-500",
                   "오답 풀이 중": "bg-amber-400",
                   "오답 등록됨": "bg-teal-400",
                   "대기 중": "bg-slate-300",
@@ -615,41 +660,41 @@ export default function TeacherDashboard() {
                 const dot = actDot[student.recentAction] ?? "bg-slate-400";
 
                 return (
-                  <tr key={student.id} className="hover:bg-slate-50/60 transition duration-150">
+                  <tr key={student.id} className="hover:bg-white transition-colors duration-150">
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-teal text-white text-xs font-black">{student.name[0]}</span>
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-teal text-white text-xs font-bold">{student.name[0]}</span>
                         <div className="flex flex-col">
-                          <span className="text-slate-800 text-sm">{student.name}</span>
-                          <span className="text-[10px] text-rose-500 font-semibold mt-0.5 max-w-[140px] truncate">{student.weakConcept}</span>
+                          <span className="text-slate-800 text-xs font-bold">{student.name}</span>
+                          <span className="text-[9px] text-rose-500 font-semibold mt-0.5 max-w-[140px] truncate">{student.weakConcept}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-slate-500 text-xs">{student.classGroup}</td>
+                    <td className="px-5 py-4 text-slate-400 text-xs font-medium">{student.classGroup}</td>
                     <td className="px-5 py-4 text-center">
-                      <span className={["inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-black",
-                        student.todayLoops > 3 ? "bg-brand-lime text-brand-teal-dark" :
+                      <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
+                        student.todayLoops > 3 ? "bg-brand-lime text-brand-teal" :
                         student.todayLoops > 0 ? "bg-teal-50 text-brand-teal" : "bg-slate-100 text-slate-400"
-                      ].join(" ")}>{student.todayLoops}</span>
+                      }`}>{student.todayLoops}</span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden shrink-0">
-                          <div className={["h-full rounded-full",
+                        <div className="w-16 bg-slate-100 h-1 rounded-full overflow-hidden shrink-0">
+                          <div className={`h-full rounded-full ${
                             student.recoveryRate >= 80 ? "bg-emerald-400" :
-                            student.recoveryRate >= 50 ? "bg-amber-400" : "bg-rose-400"
-                          ].join(" ")} style={{ width: `${student.recoveryRate}%` }} />
+                            student.recoveryRate >= 50 ? "bg-amber-400" : "bg-rose-455"
+                          }`} style={{ width: `${student.recoveryRate}%` }} />
                         </div>
-                        <span className="text-xs font-black text-slate-800">{student.recoveryRate}%</span>
+                        <span className="text-xs font-bold text-slate-800">{student.recoveryRate}%</span>
                       </div>
                     </td>
                     <td className="px-5 py-4 text-center">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${confStyles}`}>{student.confidence}</span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${confStyles}`}>{student.confidence}</span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5">
                         <span className={`h-1.5 w-1.5 rounded-full ${dot} shrink-0`} />
-                        <span className="text-xs text-slate-600">{student.recentAction}</span>
+                        <span className="text-[11px] text-slate-500 font-medium">{student.recentAction}</span>
                       </div>
                     </td>
                     <td className="px-5 py-4 text-right">
@@ -657,14 +702,14 @@ export default function TeacherDashboard() {
                         <button
                           onClick={() => void handleSendMission(student)}
                           disabled={sendingMission === student.id}
-                          className="text-[10px] font-black bg-brand-lime hover:bg-brand-lime-hover disabled:bg-slate-200 text-brand-teal-dark px-3 py-1.5 rounded-lg transition border border-transparent"
+                          className="text-[9.5px] font-bold bg-[#ccff00] hover:bg-[#b8e600] disabled:bg-slate-100 text-brand-teal px-3 py-1.5 rounded-lg transition border border-transparent hover:scale-[1.01] cursor-pointer"
                           type="button"
                         >
-                          {sendingMission === student.id ? "⏳" : "미션 전송"}
+                          {sendingMission === student.id ? "처방중" : "미션 처방"}
                         </button>
                         <button
                           onClick={() => handleOpenCoachingModal(student)}
-                          className="text-xs font-black text-brand-teal hover:bg-brand-lime hover:text-brand-teal-dark bg-teal-50 border border-teal-200 rounded-xl px-3.5 py-2 transition"
+                          className="text-[9.5px] font-bold text-brand-teal bg-teal-50 hover:bg-teal-50/80 border border-teal-200/50 rounded-lg px-3 py-1.5 transition active:scale-95 cursor-pointer"
                           type="button"
                         >
                           1:1 코칭
@@ -677,9 +722,8 @@ export default function TeacherDashboard() {
 
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center text-slate-400">
-                    <span className="text-3xl block">🔍</span>
-                    <span className="text-xs font-bold block mt-2">일치하는 학생 데이터가 없습니다.</span>
+                  <td colSpan={7} className="px-5 py-12 text-center text-slate-400 font-medium">
+                    일치하는 학생 데이터가 없습니다.
                   </td>
                 </tr>
               )}
@@ -687,66 +731,66 @@ export default function TeacherDashboard() {
           </table>
         </div>
 
-        <div className="flex justify-between items-center text-xs font-bold text-slate-400 border-t border-slate-100 pt-4">
+        <div className="flex justify-between items-center text-[10.5px] font-bold text-slate-400 border-t border-slate-100 pt-4">
           <span>검색 결과: 총 {filteredStudents.length}명 / {allStudents.length}명</span>
         </div>
       </div>
 
       {/* ── 1:1 COACHING MODAL ─────────────────────────────────── */}
       {selectedStudentForCoaching && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl border-2 border-slate-100 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col">
-            <div className="bg-brand-teal text-white p-6 flex justify-between items-center">
-              <div>
-                <span className="text-[10px] font-black text-brand-lime uppercase tracking-widest block">1:1 PERSONAL COACHING</span>
-                <h3 className="text-xl font-black text-white mt-1">{selectedStudentForCoaching.name} 학생 코칭 리포트</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-teal-dark/70 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 border border-slate-150/40">
+            <div className="bg-brand-teal p-6 text-white flex justify-between items-center relative overflow-hidden">
+              <div className="relative z-10">
+                <span className="text-[8px] font-bold text-brand-lime uppercase tracking-widest block">1:1 Personal Coaching</span>
+                <h3 className="text-lg font-bold text-white mt-1 tracking-tight">{selectedStudentForCoaching.name} 학생 코칭 리포트</h3>
               </div>
               <button onClick={() => setSelectedStudentForCoaching(null)}
-                className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 rounded-full flex items-center justify-center transition" type="button">
-                ✕
+                className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 rounded-full flex items-center justify-center transition cursor-pointer" type="button">
+                <Icons.Close />
               </button>
             </div>
 
             <div className="p-6 flex flex-col gap-4 overflow-y-auto max-h-[60vh]">
-              <div className="grid grid-cols-3 gap-2 bg-slate-50 border border-slate-100 p-3 rounded-2xl text-xs font-bold text-slate-600">
+              <div className="grid grid-cols-3 gap-2.5 bg-slate-50 border border-slate-200/50 p-4 rounded-xl text-xs font-semibold text-slate-550">
                 <div>
-                  <span className="text-[10px] text-slate-400 block mb-0.5">학급</span>
+                  <span className="text-[8px] text-slate-400 block mb-0.5 uppercase tracking-wider font-bold">Class</span>
                   {selectedStudentForCoaching.classGroup}
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block mb-0.5">회복률</span>
+                  <span className="text-[8px] text-slate-400 block mb-0.5 uppercase tracking-wider font-bold">Recovery</span>
                   {selectedStudentForCoaching.recoveryRate}%
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block mb-0.5">등록 오답</span>
-                  <span className="text-[#064e52] font-extrabold">{selectedStudentForCoaching.totalQuestions}개</span>
+                  <span className="text-[8px] text-slate-400 block mb-0.5 uppercase tracking-wider font-bold">Total Errors</span>
+                  <span className="text-brand-teal font-extrabold">{selectedStudentForCoaching.totalQuestions}개</span>
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-black text-brand-teal">선생님 피드백 메시지</label>
+                <label className="text-[10px] font-bold text-brand-teal uppercase tracking-widest">선생님 1:1 맞춤 피드백 메시지</label>
                 <textarea
                   value={coachingFeedbackText}
                   onChange={(e) => setCoachingFeedbackText(e.target.value)}
-                  className="min-h-28 p-3.5 border-2 border-slate-200 hover:border-slate-300 focus:border-brand-teal rounded-2xl text-xs font-semibold leading-relaxed focus:outline-none transition bg-slate-50/50 focus:bg-white"
-                  placeholder="학생 오답 성향에 따른 격려와 보완법을 작성해주세요..."
+                  className="min-h-[110px] p-4 border border-slate-200 hover:border-brand-teal focus:border-brand-teal rounded-xl text-xs font-semibold leading-relaxed focus:outline-none transition bg-slate-50/50 focus:bg-white"
+                  placeholder="학생 오답 성향에 따른 따뜻한 격려와 학습 보완법을 작성해주세요..."
                 />
               </div>
 
-              <div className="flex flex-col gap-2.5 border-t border-slate-100 pt-4">
-                <span className="text-xs font-black text-brand-teal block">처방 옵션</span>
+              <div className="flex flex-col gap-3 border-t border-slate-100 pt-4">
+                <span className="text-[10px] font-bold text-brand-teal block uppercase tracking-widest">처방 옵션</span>
                 {[
-                  { key: "sendToParent", label: "학부모 성장 리포트 전송", desc: "학부모 앱으로 실시간 연동됩니다." },
-                  { key: "prescribeWrongNotes", label: "오답 회복 미션 활성화", desc: "최신 pending 오답의 미션이 활성화됩니다." },
+                  { key: "sendToParent", label: "학부모 종합 성장 리포트 전송", desc: "학부모 스마트폰 앱으로 피드백이 실시간 알림 전송됩니다." },
+                  { key: "prescribeWrongNotes", label: "오답 회복 보충 미션 자동 활성화", desc: "가장 최근 등록된 취약 오답 개념에 대한 3단계 미션을 즉시 처방합니다." },
                 ].map(({ key, label, desc }) => (
-                  <label key={key} className="flex items-center gap-3 cursor-pointer group text-xs font-bold text-slate-700">
+                  <label key={key} className="flex items-start gap-3 cursor-pointer group text-xs font-semibold text-slate-650">
                     <input type="checkbox"
                       checked={coachingOptions[key as keyof typeof coachingOptions]}
                       onChange={(e) => setCoachingOptions({ ...coachingOptions, [key]: e.target.checked })}
-                      className="h-4 w-4 accent-brand-teal rounded" />
+                      className="h-4 w-4 accent-brand-teal rounded cursor-pointer mt-0.5" />
                     <div>
-                      <span className="block font-black text-slate-800 group-hover:text-brand-teal transition">{label}</span>
-                      <span className="block text-[10px] text-slate-400 mt-0.5 font-semibold">{desc}</span>
+                      <span className="block font-bold text-slate-800 group-hover:text-brand-teal transition">{label}</span>
+                      <span className="block text-[9.5px] text-slate-400 mt-0.5 font-bold leading-relaxed">{desc}</span>
                     </div>
                   </label>
                 ))}
@@ -755,11 +799,11 @@ export default function TeacherDashboard() {
 
             <div className="border-t border-slate-100 p-5 bg-slate-50 flex gap-2 justify-end">
               <button onClick={() => setSelectedStudentForCoaching(null)}
-                className="px-4 py-2 text-xs font-black text-slate-500 hover:bg-slate-200/50 rounded-xl transition border border-slate-200 bg-white" type="button">
-                닫기
+                className="px-4.5 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-200/50 rounded-xl transition border border-slate-200 bg-white cursor-pointer" type="button">
+                Close
               </button>
               <button onClick={() => void handleSendCoachingReport()}
-                className="px-5 py-2 text-xs font-black bg-brand-teal hover:bg-brand-teal-dark text-white rounded-xl shadow-md transition" type="button">
+                className="px-5 py-2.5 text-xs font-bold bg-brand-teal hover:bg-brand-teal-dark text-white rounded-xl shadow-md transition cursor-pointer" type="button">
                 리포트 전송 및 처방하기
               </button>
             </div>

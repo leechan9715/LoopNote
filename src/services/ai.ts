@@ -207,7 +207,7 @@ export async function evaluateStepAnswer(
   if (!studentAnswer || studentAnswer.trim().length === 0) {
     return {
       isCorrect: false,
-      feedback: "아무것도 적지 않았어요! 나의 멋진 생각을 조금만이라도 적어볼까요? 🌱",
+      feedback: "아무것도 적지 않았어요! 나의 멋진 생각을 조금만이라도 적어볼까요?",
     };
   }
 

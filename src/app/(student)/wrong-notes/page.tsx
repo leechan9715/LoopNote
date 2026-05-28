@@ -12,7 +12,7 @@ import { CameraScanner, type CapturedCameraImage } from "@/components/mission/Ca
 
 type Step = 1 | 2 | 3;
 type Subject = "수학" | "국어" | "영어" | "과학" | "사회";
-type Emotion = "헷갈렸어요 😕" | "너무 어려웠어요 😫" | "실수했어요 😅" | "포기하고 싶었어요 😭";
+type Emotion = "헷갈림" | "어려움" | "실수함" | "스트레스";
 
 const steps = [
   { num: 1, label: "문제 등록" },
@@ -22,14 +22,32 @@ const steps = [
 
 const subjects: Subject[] = ["수학", "국어", "영어", "과학", "사회"];
 
-const emotions: { type: Emotion; emoji: string; title: string; desc: string; bg: string; border: string; text: string }[] = [
-  { type: "헷갈렸어요 😕", emoji: "😕", title: "헷갈렸어요", desc: "개념이 조금 아리송했어요", bg: "bg-blue-50/50 hover:bg-blue-50", border: "border-blue-100 checked:border-blue-500", text: "text-blue-700" },
-  { type: "너무 어려웠어요 😫", emoji: "😫", title: "너무 어려웠어요", desc: "손도 대기 힘들 만큼 막막했어요", bg: "bg-purple-50/50 hover:bg-purple-50", border: "border-purple-100 checked:border-purple-500", text: "text-purple-700" },
-  { type: "실수했어요 😅", emoji: "😅", title: "실수했어요", desc: "다 아는 건데 아쉽게 틀렸어요", bg: "bg-amber-50/50 hover:bg-amber-50", border: "border-amber-100 checked:border-amber-500", text: "text-amber-700" },
-  { type: "포기하고 싶었어요 😭", emoji: "😭", title: "포기하고 싶었어요", desc: "스트레스를 많이 받았어요", bg: "bg-rose-50/50 hover:bg-rose-50", border: "border-rose-100 checked:border-rose-500", text: "text-rose-700" },
+const emotions: { type: Emotion; title: string; desc: string; iconPath: string }[] = [
+  { 
+    type: "헷갈림", 
+    title: "헷갈림", 
+    desc: "기본 개념이 조금 아리송했어요",
+    iconPath: "M12 16h.01M12 8a3 3 0 0 0-3 3v1"
+  },
+  { 
+    type: "어려움", 
+    title: "어려움", 
+    desc: "문제 풀이의 시작점 자체를 찾기 어려웠어요",
+    iconPath: "M12 9v4m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3Z"
+  },
+  { 
+    type: "실수함", 
+    title: "실수함", 
+    desc: "알고 있는 공식인데 순간의 착각으로 틀렸어요",
+    iconPath: "M12 8v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+  },
+  { 
+    type: "스트레스", 
+    title: "스트레스", 
+    desc: "심리적으로 부담감을 많이 느끼는 오답이에요",
+    iconPath: "M13 10V3L4 14h7v7l9-11h-7Z"
+  },
 ];
-
-const defaultProblemText = "분수 1/3과 1/5 중 어느 것이 더 큰지 비교하고, 그 이유를 피자 그림을 사용하여 설명해 보세요.";
 
 export default function RegisterWrongNoteForm() {
   const router = useRouter();
@@ -46,7 +64,7 @@ export default function RegisterWrongNoteForm() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [customAnswer, setCustomAnswer] = useState("");
   const [metacognition, setMetacognition] = useState("");
-  const [selectedEmotion, setSelectedEmotion] = useState<Emotion>("헷갈렸어요 😕");
+  const [selectedEmotion, setSelectedEmotion] = useState<Emotion>("헷갈림");
   
   // UI Controls
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -63,7 +81,7 @@ export default function RegisterWrongNoteForm() {
     setCapturedBlob(blob);
     setCapturedDataUrl(dataUrl);
     setIsScannerOpen(false);
-    setToastMessage("문제가 성공적으로 스캔되었습니다!📸");
+    setToastMessage("오답 이미지가 정상 스캔되었습니다.");
   };
 
   const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -74,7 +92,7 @@ export default function RegisterWrongNoteForm() {
       reader.onload = (event) => {
         setCapturedBlob(file);
         setCapturedDataUrl(event.target?.result as string);
-        setToastMessage("파일 업로드 완료!📸");
+        setToastMessage("파일 업로드 완료");
       };
       reader.readAsDataURL(file);
     }
@@ -87,7 +105,7 @@ export default function RegisterWrongNoteForm() {
       reader.onload = (event) => {
         setCapturedBlob(file);
         setCapturedDataUrl(event.target?.result as string);
-        setToastMessage("파일 업로드 완료!📸");
+        setToastMessage("파일 업로드 완료");
       };
       reader.readAsDataURL(file);
     }
@@ -96,7 +114,7 @@ export default function RegisterWrongNoteForm() {
   // Submit Handler
   const handleSubmit = async () => {
     if (isDemoStudent) {
-      alert("체험용 계정에서는 오답 스캔 및 업로드 기능이 제한됩니다. 로그인 후 나의 실제 오답을 스캔해 보세요! 📸");
+      alert("체험용 계정에서는 오답 스캔 및 업로드 기능이 제한됩니다. 로그인 후 실제 오답을 스캔하고 학습 루프를 체험해 보세요!");
       return;
     }
     setIsSubmitting(true);
@@ -139,7 +157,7 @@ export default function RegisterWrongNoteForm() {
           questionId = newQuestion.id;
         }
 
-        // Trigger AI Generation (async, but let's call it and redirect)
+        // Trigger AI Generation (async)
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
         if (token) {
@@ -154,14 +172,14 @@ export default function RegisterWrongNoteForm() {
         }
       }
 
-      setToastMessage("오답 등록 및 진단 완료! 곧 진단 페이지로 이동합니다.");
+      setToastMessage("생각오류 분석 개시! 곧 진단 보고서 페이지로 연결됩니다.");
       setTimeout(() => {
         router.push(`/wrong-notes/diagnose/${questionId}`);
       }, 1000);
 
     } catch (err) {
       console.error("Submission failed:", err);
-      setToastMessage("등록 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      setToastMessage("등록 중 요류가 발생했습니다. 다시 시도해 주세요.");
     } finally {
       setIsSubmitting(false);
     }
@@ -170,21 +188,21 @@ export default function RegisterWrongNoteForm() {
   const nextStep = () => {
     if (currentStep === 1) {
       if (!capturedDataUrl) {
-        setToastMessage("⚠️ 오답 사진을 먼저 등록해 주세요!");
+        setToastMessage("⚠️ 오답 이미지를 먼저 등록해 주세요!");
         return;
       }
       if (selectedAnswer === null) {
-        setToastMessage("⚠️ 내가 선택한 번호나 답안을 체크해 주세요!");
+        setToastMessage("⚠️ 내가 골랐던 선택 번호를 클릭해 주세요!");
         return;
       }
       if (selectedAnswer === 0 && !customAnswer.trim()) {
-        setToastMessage("⚠️ 직접 적은 답안을 입력해 주세요!");
+        setToastMessage("⚠️ 직접 적었던 주관식 답안을 입력해 주세요!");
         return;
       }
       setCurrentStep(2);
     } else if (currentStep === 2) {
       if (!metacognition.trim()) {
-        setToastMessage("⚠️ 왜 그렇게 생각했는지 이유를 적어주세요!");
+        setToastMessage("⚠️ 왜 그렇게 풀었는지 메타인지 생각을 짧게 설명해 주세요!");
         return;
       }
       setCurrentStep(3);
@@ -198,23 +216,25 @@ export default function RegisterWrongNoteForm() {
   };
 
   return (
-    <div className="max-w-xl mx-auto py-2 flex flex-col gap-6">
+    <div className="max-w-xl mx-auto py-4 flex flex-col gap-6 pb-16">
       
-      {/* Dynamic Progress Header */}
-      <section className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm">
-        <Typography as="p" variant="caption" className="font-extrabold text-[#0d6e73] uppercase tracking-wider mb-2">
-          신규 오답 등록
+      {/* Progress Header */}
+      <section className="glass-card rounded-[2rem] border border-white/60 p-6 md:p-8 shadow-[0_20px_50px_rgba(6,78,82,0.03)] relative overflow-hidden transition-all duration-300 text-left">
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#ccff00]/10 to-transparent rounded-bl-full pointer-events-none" />
+        
+        <Typography as="p" variant="caption" className="font-black text-[#064e52]/75 uppercase tracking-widest mb-1.5">
+          New Wrong Answer Entry
         </Typography>
-        <Typography as="h1" variant="h1" className="text-slate-900 font-black text-xl md:text-2xl">
-          오답 스캔 & 막힘 진단 📝
+        <Typography as="h1" variant="h1" className="text-[#021e21] font-black text-xl md:text-2xl tracking-tight">
+          오답 스캔 및 생각 진단
         </Typography>
         
         {/* Horizontal Progress Timeline */}
-        <div className="flex items-center justify-between mt-6 relative">
-          <div className="absolute left-[10%] right-[10%] top-1/2 -translate-y-1/2 h-1 bg-slate-100 -z-10" />
+        <div className="flex items-center justify-between mt-8 relative px-2">
+          <div className="absolute left-[12%] right-[12%] top-1/2 -translate-y-1/2 h-[2px] bg-slate-200/60 rounded-full -z-10" />
           <div 
-            className="absolute left-[10%] top-1/2 -translate-y-1/2 h-1 bg-[#064e52] transition-all duration-300 -z-10"
-            style={{ width: currentStep === 1 ? "0%" : currentStep === 2 ? "40%" : "80%" }}
+            className="absolute left-[12%] top-1/2 -translate-y-1/2 h-[2px] bg-[#064e52] rounded-full transition-all duration-500 -z-10"
+            style={{ width: currentStep === 1 ? "0%" : currentStep === 2 ? "38%" : "76%" }}
           />
 
           {steps.map((s) => {
@@ -227,20 +247,20 @@ export default function RegisterWrongNoteForm() {
                   if (isCompleted || s.num === 1) setCurrentStep(s.num as Step);
                 }}
                 disabled={!isCompleted && s.num > currentStep}
-                className="flex flex-col items-center gap-1.5 focus:outline-none"
+                className="flex flex-col items-center gap-2 focus:outline-none transition group cursor-pointer"
               >
                 <div 
-                  className={`w-9 h-9 rounded-2xl flex items-center justify-center font-bold text-xs shadow-sm border transition duration-300 ${
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs border transition-all duration-300 ${
                     isActive 
-                      ? "bg-[#064e52] text-white border-[#064e52]" 
+                      ? "bg-[#064e52] text-white border-[#064e52] scale-110 shadow-sm" 
                       : isCompleted 
-                        ? "bg-[#b5e61d] text-[#064e52] border-[#b5e61d]" 
-                        : "bg-white text-slate-400 border-slate-100"
+                        ? "bg-[#ccff00] text-[#064e52] border-[#064e52] shadow-sm" 
+                        : "bg-white/80 text-slate-400 border-slate-200/50 backdrop-blur-sm hover:border-slate-350"
                   }`}
                 >
                   {isCompleted ? "✓" : s.num}
                 </div>
-                <span className={`text-[10px] font-black tracking-tight ${isActive ? "text-[#064e52]" : "text-slate-400"}`}>
+                <span className={`text-[9.5px] font-black tracking-widest uppercase transition-colors duration-300 ${isActive ? "text-[#064e52]" : "text-slate-400 group-hover:text-slate-500"}`}>
                   {s.label}
                 </span>
               </button>
@@ -248,15 +268,15 @@ export default function RegisterWrongNoteForm() {
           })}
         </div>
       </section>
-
+ 
       {/* STEP 1: 문제 등록 */}
       {currentStep === 1 && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-200">
+        <div className="space-y-6 animate-in fade-in duration-300 text-left">
           
           {/* Subject Selector */}
-          <section className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm space-y-3">
-            <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-sm">
-              교과목 선택
+          <section className="glass-card rounded-[2rem] border border-white/60 p-6 md:p-8 shadow-[0_20px_50px_rgba(6,78,82,0.03)] space-y-4">
+            <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-xs uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00]" /> 교과목 카테고리
             </Typography>
             <div className="flex flex-wrap gap-2">
               {subjects.map((sub) => {
@@ -266,10 +286,10 @@ export default function RegisterWrongNoteForm() {
                     key={sub}
                     type="button"
                     onClick={() => setSelectedSubject(sub)}
-                    className={`px-4 py-2.5 rounded-2xl border text-xs font-black transition duration-200 ${
+                    className={`px-5 py-3 rounded-2xl border text-xs font-black transition-all duration-200 cursor-pointer ${
                       isSelected 
-                        ? "bg-[#b5e61d] text-[#064e52] border-[#b5e61d] shadow-sm" 
-                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                        ? "bg-[#064e52] text-white border-[#064e52] shadow-sm" 
+                        : "bg-white/60 text-slate-600 border-slate-200/80 hover:bg-white"
                     }`}
                   >
                     {sub}
@@ -278,56 +298,62 @@ export default function RegisterWrongNoteForm() {
               })}
             </div>
           </section>
-
-          {/* Dotted Upload Dropzone */}
-          <section className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm space-y-4">
-            <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-sm">
-              오답 문제 사진 업로드
+  
+          {/* Dotted Upload Dropzone / AR Scan Aperture */}
+          <section className="glass-card rounded-[2rem] border border-white/60 p-6 md:p-8 shadow-[0_20px_50px_rgba(6,78,82,0.03)] space-y-4">
+            <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-xs uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00]" /> 오답 스캔 이미지
             </Typography>
             
             <div 
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleFileDrop}
-              className={`border-3 border-dashed rounded-3xl p-8 text-center flex flex-col items-center justify-center min-h-[220px] transition duration-200 ${
-                capturedDataUrl ? "border-[#b5e61d] bg-[#b5e61d]/5" : "border-slate-200 hover:border-[#064e52]/30 bg-slate-50/50"
+              className={`border border-dashed rounded-[1.8rem] p-8 text-center flex flex-col items-center justify-center min-h-[240px] transition-all duration-300 relative overflow-hidden ${
+                capturedDataUrl ? "border-[#064e52] bg-white/40" : "border-slate-250 bg-[#f8fafc]/55 hover:border-slate-350"
               }`}
             >
               {capturedDataUrl ? (
-                <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-md border-2 border-white">
+                <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-md border-4 border-white">
                   <Image 
                     src={capturedDataUrl} 
                     alt="Captured Scan Preview" 
                     fill 
                     className="object-cover" 
                   />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition duration-200">
+                  {/* Glowing Laser Scanline overlay */}
+                  <div className="absolute inset-x-0 h-0.5 bg-[#ccff00] shadow-[0_0_12px_#ccff00] top-0 animate-laser-scan" />
+                  
+                  <div className="absolute inset-0 bg-[#00282b]/70 opacity-0 hover:opacity-100 flex items-center justify-center transition-all duration-300">
                     <button 
                       onClick={() => setCapturedDataUrl(null)} 
-                      className="bg-rose-600 text-white rounded-full px-4 py-2 text-xs font-black"
+                      className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl px-5 py-2.5 text-[10px] font-black shadow-md cursor-pointer transition duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     >
-                      삭제 후 다시 찍기
+                      삭제 후 재촬영
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4 flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-2xl shadow-sm border border-slate-100 text-slate-400">
-                    📸
+                  <div className="w-12 h-12 rounded-xl bg-[#064e52]/5 text-[#064e52] border border-[#064e52]/10 flex items-center justify-center text-xl shadow-sm relative">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
                   </div>
                   <div>
-                    <p className="text-xs font-black text-slate-700">문제 사진을 드래그해서 올려주세요</p>
-                    <p className="text-[10px] text-slate-400 font-bold mt-1">파일 형식: JPG, PNG, GIF</p>
+                    <p className="text-xs font-black text-[#064e52]">이곳으로 이미지를 가져와 스캔해 주세요</p>
+                    <p className="text-[8.5px] text-slate-400 font-black mt-1.5 tracking-widest uppercase">JPG / PNG / GIF / Drag & Drop</p>
                   </div>
-                  <div className="flex gap-2.5 pt-1">
+                  <div className="flex gap-2.5 pt-2">
                     <button
                       type="button"
                       onClick={() => setIsScannerOpen(true)}
-                      className="bg-[#064e52] hover:bg-[#0d6e73] text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-sm transition"
+                      className="bg-[#064e52] hover:bg-[#00363a] text-white text-xs font-black px-5 py-3 rounded-2xl shadow-sm transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                     >
-                      카메라로 스캔하기
+                      실시간 오답 스캔
                     </button>
-                    <label className="cursor-pointer bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-black px-4 py-2.5 rounded-xl transition flex items-center justify-center">
-                      <span>파일 올리기</span>
+                    <label className="cursor-pointer bg-white hover:bg-slate-50 border border-slate-200 text-[#064e52] text-xs font-black px-5 py-3 rounded-2xl transition-all duration-200 flex items-center justify-center hover:scale-[1.01] active:scale-[0.99]">
+                      <span>파일 불러오기</span>
                       <input 
                         type="file" 
                         accept="image/*" 
@@ -340,13 +366,13 @@ export default function RegisterWrongNoteForm() {
               )}
             </div>
           </section>
-
+  
           {/* Multiple-choice button selectors */}
-          <section className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm space-y-4">
-            <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-sm">
-              내가 고른 답안 번호
+          <section className="glass-card rounded-[2rem] border border-white/60 p-6 md:p-8 shadow-[0_20px_50px_rgba(6,78,82,0.03)] space-y-5">
+            <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-xs uppercase tracking-wider flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00]" /> 내가 선택했던 번호
             </Typography>
-            <div className="flex justify-between gap-2">
+            <div className="flex justify-between gap-2 max-w-xs mx-auto">
               {[1, 2, 3, 4, 5].map((num) => {
                 const isSelected = selectedAnswer === num;
                 return (
@@ -354,10 +380,10 @@ export default function RegisterWrongNoteForm() {
                     key={num}
                     type="button"
                     onClick={() => setSelectedAnswer(num)}
-                    className={`w-11 h-11 rounded-full text-sm font-black border transition duration-200 flex items-center justify-center ${
+                    className={`w-11 h-11 rounded-xl text-xs font-black border transition-all duration-200 flex items-center justify-center cursor-pointer ${
                       isSelected 
-                        ? "bg-[#064e52] text-white border-[#064e52] scale-110 shadow-md shadow-[#064e52]/15" 
-                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                        ? "bg-[#064e52] text-white border-[#064e52] scale-105 shadow-sm" 
+                        : "bg-white/50 text-slate-650 border-slate-200/80 hover:bg-white"
                     }`}
                   >
                     {num}
@@ -366,70 +392,74 @@ export default function RegisterWrongNoteForm() {
               })}
             </div>
             
-            {/* Custom answer typing option */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-[10px] text-slate-400 font-bold">주관식이나 서술형인 경우:</span>
+            <div className="pt-3 border-t border-slate-100/60 flex items-center justify-between">
+              <span className="text-[10px] text-slate-400 font-bold tracking-tight">주관식이나 직접 입력하는 답안인가요?</span>
               <button 
                 type="button" 
-                onClick={() => setSelectedAnswer(0)} // 0 means custom/written
-                className={`text-[10px] font-black transition ${selectedAnswer === 0 ? "text-[#0d6e73] underline" : "text-slate-500"}`}
+                onClick={() => setSelectedAnswer(0)}
+                className={`text-[9.5px] font-black transition-colors cursor-pointer ${selectedAnswer === 0 ? "text-[#064e52] underline decoration-2" : "text-slate-500 hover:text-[#064e52]"}`}
               >
-                직접 답안 적기
+                직접 답안 입력
               </button>
             </div>
-
+  
             {selectedAnswer === 0 && (
-              <div className="pt-3 border-t border-dashed border-slate-150 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="pt-4 border-t border-dashed border-slate-200/80 animate-in fade-in duration-300">
                 <Input
-                  label="내가 직접 적은 정답 입력"
-                  placeholder="내가 작성한 정답을 입력해 주세요 (예: 5/8, 12cm 등)"
+                  label="직접 적은 답안"
+                  placeholder="작성했던 답안을 정확히 적어주세요"
                   value={customAnswer}
                   onChange={(e) => setCustomAnswer(e.target.value)}
-                  className="w-full text-xs font-bold text-slate-800"
+                  className="w-full text-xs font-bold text-slate-800 focus:border-[#064e52]"
                 />
               </div>
             )}
           </section>
         </div>
       )}
-
+ 
       {/* STEP 2: 생각 설명 */}
       {currentStep === 2 && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <section className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm space-y-4">
-            <div className="space-y-1">
-              <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-sm">
-                메타인지 생각 설명 🧠
+        <div className="space-y-6 animate-in fade-in duration-300 text-left">
+          <section className="glass-card rounded-[2rem] border border-white/60 p-6 md:p-8 shadow-[0_20px_50px_rgba(6,78,82,0.03)] space-y-4">
+            <div className="space-y-1.5">
+              <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-xs uppercase tracking-wider flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00]" /> 메타인지 생각 설명
               </Typography>
-              <Typography as="p" variant="caption" className="text-slate-500 font-bold leading-relaxed">
-                정답을 골랐을 때 어떤 생각이었나요? 풀이 과정이나 고민을 자세히 적을수록 AI 선생님이 더 정교한 생각 회복 힌트를 제작해 줍니다.
+              <Typography as="p" variant="caption" className="text-slate-400 font-bold leading-relaxed text-[10.5px]">
+                답을 선택할 당시의 생각 오류를 있는 그대로 적어주세요. 많이 채워주실수록 AI 발문 힌트의 정확도가 극대화됩니다.
               </Typography>
             </div>
-
-            <textarea
-              rows={6}
-              value={metacognition}
-              onChange={(e) => setMetacognition(e.target.value)}
-              placeholder="예: '피자 1/3은 피자 3개 크기인 줄 알고 1/5보다 더 크다고 생각했는데, 막상 피자를 그려보니까 헷갈려요... 어떻게 풀어야 할지 잘 모르겠어요.'"
-              className="w-full rounded-2xl border border-slate-200 p-4 text-xs font-semibold focus:border-[#064e52] focus:ring-1 focus:ring-[#064e52] outline-none transition resize-none leading-relaxed bg-[#f8fafc]"
-            />
+  
+            <div className="relative">
+              <textarea
+                rows={7}
+                value={metacognition}
+                onChange={(e) => setMetacognition(e.target.value)}
+                placeholder="예: 분모가 더 큰 쪽이 나누는 조각이 작아져 실제 비율이 작아진다는 것을 헷갈리고 단순 수의 크기로 비교했습니다."
+                className="w-full rounded-[1.5rem] border border-slate-200 p-5 text-[11px] font-bold focus:border-[#064e52] outline-none transition bg-white/40 resize-none leading-relaxed"
+              />
+              <span className="absolute bottom-4 right-4 text-[9px] font-bold text-slate-400">
+                {metacognition.length}자 입력됨
+              </span>
+            </div>
           </section>
         </div>
       )}
-
+  
       {/* STEP 3: 감정 체크 */}
       {currentStep === 3 && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <section className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm space-y-4">
-            <div className="space-y-1">
-              <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-sm">
-                풀 때의 감정 체크 💭
+        <div className="space-y-6 animate-in fade-in duration-300 text-left">
+          <section className="glass-card rounded-[2rem] border border-white/60 p-6 md:p-8 shadow-[0_20px_50px_rgba(6,78,82,0.03)] space-y-5">
+            <div className="space-y-1.5">
+              <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-xs uppercase tracking-wider flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00]" /> 학습 시점의 마음 상태
               </Typography>
-              <Typography as="p" variant="caption" className="text-slate-500 font-bold leading-relaxed">
-                이 오답 문제를 마주했을 때의 기분이 어땠나요? 마음까지 보듬어 회복할 수 있는 코칭 카드가 제공됩니다.
+              <Typography as="p" variant="caption" className="text-slate-400 font-bold leading-relaxed text-[10.5px]">
+                이 오답을 직면했을 때 내면의 진짜 마음 상태에 가장 근접한 옵션을 고르세요.
               </Typography>
             </div>
-
+  
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {emotions.map((emo) => {
                 const isSelected = selectedEmotion === emo.type;
@@ -438,16 +468,20 @@ export default function RegisterWrongNoteForm() {
                     key={emo.type}
                     type="button"
                     onClick={() => setSelectedEmotion(emo.type)}
-                    className={`p-4 rounded-2xl border-2 text-left transition duration-200 flex items-start gap-3.5 ${emo.bg} ${
+                    className={`p-5 rounded-[1.5rem] border-2 text-left transition duration-200 flex items-start gap-4 hover:scale-[1.01] cursor-pointer ${
                       isSelected 
-                        ? "border-[#064e52] bg-white ring-1 ring-[#064e52] shadow-sm" 
-                        : "border-slate-100 hover:border-slate-200"
+                        ? "border-[#064e52] bg-white shadow-sm" 
+                        : "border-slate-100/60 bg-[#f8fafc]/30 hover:border-slate-200"
                     }`}
                   >
-                    <span className="text-3xl">{emo.emoji}</span>
+                    <div className="p-2 rounded-xl bg-[#064e52]/5 text-[#064e52] shrink-0">
+                      <svg className="h-5.5 w-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d={emo.iconPath} />
+                      </svg>
+                    </div>
                     <div className="space-y-0.5">
-                      <span className="block text-xs font-black text-slate-800">{emo.title}</span>
-                      <span className="block text-[10px] text-slate-400 font-bold leading-relaxed">{emo.desc}</span>
+                      <span className="block text-xs font-black text-[#021e21]">{emo.title}</span>
+                      <span className="block text-[9.5px] text-slate-400 font-bold leading-relaxed">{emo.desc}</span>
                     </div>
                   </button>
                 );
@@ -456,48 +490,48 @@ export default function RegisterWrongNoteForm() {
           </section>
         </div>
       )}
-
+  
       {/* Footer Navigation Action Bar */}
-      <footer className="flex justify-between gap-3 items-center pt-2">
+      <footer className="flex justify-between gap-3.5 items-center pt-2">
         {currentStep > 1 ? (
           <Button 
             onClick={prevStep}
             variant="outline"
-            className="rounded-2xl border-slate-200 text-slate-600 font-black px-6 shadow-none"
+            className="rounded-2xl border-slate-200 bg-white text-slate-600 font-black px-6 shadow-sm hover:bg-slate-50 transition active:scale-95 text-xs min-h-[48px] cursor-pointer"
           >
-            ← 이전 단계
+            이전 단계
           </Button>
         ) : (
           <Button 
             onClick={() => router.push("/")}
             variant="outline"
-            className="rounded-2xl border-slate-200 text-slate-600 font-black px-6 shadow-none"
+            className="rounded-2xl border-slate-200 bg-white text-slate-600 font-black px-6 shadow-sm hover:bg-slate-50 transition active:scale-95 text-xs min-h-[48px] cursor-pointer"
           >
-            목록으로
+            대시보드
           </Button>
         )}
-
+  
         {currentStep < 3 ? (
           <Button 
             onClick={nextStep}
-            className="rounded-2xl bg-[#064e52] hover:bg-[#0d6e73] text-white font-black px-6 flex-1 min-h-12"
+            className="rounded-2xl bg-[#064e52] hover:bg-[#00363a] text-white font-black px-6 flex-1 min-h-[48px] text-xs shadow-sm cursor-pointer"
           >
-            다음 단계로 →
+            다음 단계로
           </Button>
         ) : (
           <Button 
             onClick={handleSubmit}
             isLoading={isSubmitting}
-            className="rounded-2xl bg-[#b5e61d] hover:bg-[#a1cf15] text-[#064e52] font-black px-6 flex-1 min-h-12 shadow-sm border border-[#b5e61d]"
+            className="rounded-2xl bg-[#ccff00] hover:bg-[#e1ff66] text-[#064e52] font-black px-6 flex-1 min-h-[48px] text-xs shadow-md shadow-lime-200/30 cursor-pointer"
           >
-            진단 시작하기 🚀
+            AI 생각진단 분석 요청 ➔
           </Button>
         )}
       </footer>
-
+  
       {/* Scanner Overlay Modal */}
       {isScannerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-md animate-in fade-in duration-300">
           <div className="w-full max-w-md">
             <CameraScanner
               onCapture={handleCapture}
@@ -506,11 +540,11 @@ export default function RegisterWrongNoteForm() {
           </div>
         </div>
       )}
-
+  
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed left-1/2 bottom-20 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm">
-          <div className="rounded-2xl bg-slate-950/90 text-white px-4 py-3.5 text-center text-xs font-black shadow-2xl border border-slate-800/50 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed left-1/2 bottom-24 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm">
+          <div className="rounded-2xl bg-[#021e21]/95 text-white px-5 py-4 text-center text-xs font-black shadow-2xl border border-white/10 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300">
             {toastMessage}
           </div>
         </div>

@@ -27,7 +27,7 @@ function readUserName(metadata: Record<string, unknown> | undefined): string {
 
 function InfinityLogo({ className = "h-8 w-8" }: { className?: string }) {
   return (
-    <svg className={`${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg className={`${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z" />
     </svg>
   );
@@ -152,165 +152,131 @@ export default function StudentHomePage() {
     return activeMissions[0]?.id || null;
   }, [activeMissions]);
 
-  // If loading auth state, show a premium skeleton or spinner
+  // If loading auth state, show a premium layout placeholder
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
+      <div className="flex h-[70vh] flex-col items-center justify-center gap-4 text-center">
         <div className="relative flex h-14 w-14 items-center justify-center">
-          <div className="absolute h-14 w-14 animate-spin rounded-full border-4 border-teal-200 border-t-[#064e52]" />
-          <div className="text-xl">🎒</div>
+          <div className="absolute h-14 w-14 animate-spin rounded-full border-2 border-slate-200 border-t-[#064e52]" />
         </div>
-        <Typography as="p" variant="body" className="text-slate-500 font-extrabold animate-pulse">
-          루프노트 준비 중...
-        </Typography>
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">
+          Loading student loop console...
+        </span>
       </div>
     );
   }
 
   // =========================================================================
-  // GUEST (UNAUTHENTICATED) ROOT LANDING PAGE
+  // GUEST (UNAUTHENTICATED) ROOT LANDING PAGE - AWWRARDS EXPERIMENTAL SWISS GRID
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col gap-16 py-6 max-w-4xl mx-auto">
+      <div className="flex flex-col gap-16 py-8 max-w-5xl mx-auto px-4 relative overflow-hidden bg-transparent">
+        
+        {/* Dynamic backing design lights */}
+        <div className="absolute top-1/4 left-[-10%] w-80 h-80 bg-[#ccff00]/5 rounded-full blur-[110px] pointer-events-none" />
+        <div className="absolute top-10 right-[-10%] w-[350px] h-[350px] bg-teal-500/5 rounded-full blur-[120px] pointer-events-none" />
+
         {/* Hero Section */}
-        <section className="text-center space-y-6 pt-8 relative">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-[#b5e61d]/10 rounded-full blur-3xl -z-10" />
-          
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#064e52]/5 border border-[#064e52]/10 text-xs font-black text-[#064e52] tracking-wider mb-2 animate-bounce">
-            🌱 틀린 오답이 성장하는 곳
+        <section className="text-left space-y-8 pt-10 relative">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#064e52]/5 border border-[#064e52]/10 text-[9px] font-black text-[#064e52] tracking-widest uppercase mb-1 shadow-sm">
+            ACTIVE COGNITIVE HYPOTHESIS
           </div>
           
-          <Typography as="h1" variant="h1" className="text-4xl md:text-5xl font-black text-[#064e52] tracking-tight leading-tight">
-            틀린 순간이 <br className="sm:hidden" />
-            <span className="relative inline-block">
-              다음 실력
-              <span className="absolute left-0 bottom-1 w-full h-3 bg-[#b5e61d]/30 -z-10" />
-            </span>
-            이 되는 곳
-          </Typography>
+          <h1 className="text-4xl md:text-[3.75rem] font-black text-[#021e21] tracking-tight leading-[1.05] uppercase font-sans">
+            Wrecking Errors <br />
+            Reclaiming <span className="font-serif italic font-normal text-[#064e52] underline decoration-[#ccff00]/40 decoration-wavy underline-offset-8">Cognitive</span> Growth.
+          </h1>
           
-          <Typography as="p" variant="body" className="text-slate-600 max-w-lg mx-auto leading-relaxed text-sm md:text-base font-semibold">
-            틀린 문제를 찍어만 주세요. LoopNote의 AI 선생님이 아이 눈높이에 딱 맞춘 3단계 생각 회복 루프로 답을 찾도록 도와줍니다.
+          <Typography as="p" variant="body" className="text-slate-400 max-w-2xl leading-relaxed text-xs md:text-sm font-bold">
+            틀린 문제를 찍어만 주세요. 루프노트의 독창적인 AI 소크라테스 힌트 알고리즘이 학생이 막힌 수학 오개념 오류를 진단하고 단계별 10분 학습 미션으로 생각을 능동적으로 확장시킵니다.
           </Typography>
 
-          {/* Plant Graphic */}
-          <div className="flex justify-center pt-8 relative">
-            <div className="relative w-48 h-48 flex items-center justify-center">
-              {/* Plant Pot SVG */}
-              <svg className="w-40 h-40" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* STEMS */}
-                <path d="M100 130C80 90 90 40 60 20" stroke="#064e52" strokeWidth="4" strokeLinecap="round" />
-                <path d="M100 130C120 100 110 60 130 35" stroke="#064e52" strokeWidth="4" strokeLinecap="round" />
-                <path d="M100 130C100 80 95 50 100 15" stroke="#064e52" strokeWidth="4.5" strokeLinecap="round" />
-                
-                {/* LEAVES */}
-                {/* Leaf Left */}
-                <path d="M60 20C45 20 40 35 60 45C80 55 75 25 60 20Z" fill="#b5e61d" stroke="#064e52" strokeWidth="2.5" />
-                <circle cx="50" cy="27" r="2" fill="white" />
-                
-                {/* Leaf Right */}
-                <path d="M130 35C145 35 148 50 130 60C112 70 115 45 130 35Z" fill="#b5e61d" stroke="#064e52" strokeWidth="2.5" />
-                <circle cx="138" cy="45" r="2" fill="white" />
-                
-                {/* Leaf Middle */}
-                <path d="M100 15C85 10 80 30 100 40C120 50 115 20 100 15Z" fill="#b5e61d" stroke="#064e52" strokeWidth="3" />
-                <circle cx="95" cy="22" r="2.5" fill="white" />
-                
-                {/* Minor Leaves */}
-                <path d="M85 80C75 75 70 85 85 90C100 95 95 85 85 80Z" fill="#b5e61d" stroke="#064e52" strokeWidth="2" />
-                <path d="M112 90C122 85 125 95 112 100C99 105 102 95 112 90Z" fill="#b5e61d" stroke="#064e52" strokeWidth="2" />
-
-                {/* THE POT */}
-                <path d="M60 130H140L130 180H70L60 130Z" fill="url(#potGradient)" stroke="#064e52" strokeWidth="4.5" strokeLinejoin="round" />
-                <rect x="50" y="120" width="100" height="12" rx="6" fill="#064e52" />
-                <rect x="55" y="123" width="90" height="6" rx="3" fill="#0d6e73" />
-                
-                {/* Sparkles */}
-                <path d="M150 20L154 28L162 29L156 35L158 43L150 38L142 43L144 35L138 29L146 28L150 20Z" fill="#b5e61d" opacity="0.8" />
-                <path d="M40 70L42 74L46 74.5L43 77.5L44 81.5L40 79L36 81.5L37 77.5L34 74.5L38 74L40 70Z" fill="#b5e61d" opacity="0.6" />
-                
-                {/* Gradients */}
-                <defs>
-                  <linearGradient id="potGradient" x1="100" y1="130" x2="100" y2="180" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#064e52" />
-                    <stop offset="1" stopColor="#00363a" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              {/* Subtle platform shadow */}
-              <div className="absolute bottom-1 w-32 h-3 bg-black/10 rounded-full blur-sm" />
+          {/* Generated Awwwards Artwork Widescreen Plate - Wiped pot illustrations */}
+          <div className="pt-6 relative">
+            <div className="relative rounded-[2.5rem] overflow-hidden border border-[#064e52]/15 shadow-[0_30px_70px_rgba(6,78,82,0.12)]">
+              <img 
+                src="/student_study_banner.png" 
+                alt="Student growth curves backdrop" 
+                className="w-full h-auto min-h-[220px] max-h-[380px] object-cover transition duration-700 hover:scale-[1.01]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#00282b]/80 via-transparent to-transparent flex items-end p-6 md:p-10">
+                <div className="text-left">
+                  <span className="text-[8px] font-black tracking-widest text-[#ccff00] bg-white/10 border border-white/10 px-3 py-1 rounded uppercase">System Active</span>
+                  <p className="text-white text-base md:text-lg font-black tracking-tight mt-2 uppercase">Awwwards 1st Place Digital Canvas</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* 4-Step Timeline Section */}
-        <section className="space-y-8 bg-white rounded-3xl p-8 border border-slate-200/60 shadow-md">
-          <div className="text-center">
-            <Typography as="h2" variant="h2" className="text-[#064e52] font-black">
-              LoopNote 성장 4단계 루프
-            </Typography>
-            <Typography as="p" variant="caption" className="text-slate-500 font-bold mt-1.5">
-              막힌 원인을 진단하고 딱 10분만 투자해 오답을 완전히 회복해요!
-            </Typography>
+        {/* Asymmetric Swiss Grid 4-Step Cycle */}
+        <section className="space-y-8 glass-card rounded-[2.5rem] p-8 md:p-12 border border-white/60 shadow-[0_20px_50px_rgba(6,78,82,0.02)] transition-all duration-300">
+          <div className="text-left space-y-1.5 border-b border-[#064e52]/5 pb-4">
+            <span className="inline-block text-[8px] font-black tracking-widest text-[#064e52] bg-[#ccff00] px-3.5 py-1 rounded-md uppercase">
+              LEARNING ARCHITECTURE
+            </span>
+            <h2 className="text-[#021e21] font-black text-xl tracking-tight uppercase">
+              The 4-Step Recovery Loop
+            </h2>
+            <p className="text-slate-400 font-extrabold text-[9.5px] uppercase tracking-widest">
+              How LoopNote transforms wrong answers into clarity
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
-            {/* Connection Line for Desktop */}
-            <div className="hidden md:block absolute top-1/2 left-[12%] right-[12%] h-1 bg-slate-100 -translate-y-6 -z-10" />
-
-            {/* Timeline Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
             {[
-              { num: "01", title: "오답 등록", desc: "문제 사진을 찍고 내가 푼 흔적과 감정을 알려주세요.", emoji: "📸" },
-              { num: "02", title: "막힘 진단", desc: "AI 선생님이 오답 원인을 정확하게 진단합니다.", emoji: "🔬" },
-              { num: "03", title: "10분 미션", desc: "시각 자료와 함께 단계별 힌트로 생각을 풀어요.", emoji: "⏱️" },
-              { num: "04", title: "코칭 카드", desc: "스스로 해결하는 힘을 기르는 코칭 피드백 완성!", emoji: "🌱" },
+              { num: "01", title: "오답 찰칵 스캔", desc: "틀린 오답 사진을 촬영하고, 풀이 시점의 마음 상태를 입력합니다." },
+              { num: "02", title: "생각 막힘 진단", desc: "AI 소크라테스 알고리즘이 개념 연결망 내에서 오류 좌표를 산출합니다." },
+              { num: "03", title: "10분 회복 미션", desc: "시각적 디스크 피자 조각을 마우스로 조작하며 원리를 유추해 냅니다." },
+              { num: "04", title: "1:1 코칭 리포트", desc: "극복이 완료되면 부모 포털과 교사 대시보드로 실시간 전달됩니다." },
             ].map((step, idx) => (
-              <div key={idx} className="flex flex-col items-center text-center p-4 bg-[#f8fafc] rounded-2xl border border-slate-100 hover:border-[#b5e61d] transition duration-300 group">
-                <div className="w-12 h-12 rounded-2xl bg-white text-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition duration-300 border border-slate-100">
-                  {step.emoji}
+              <div key={idx} className="flex flex-col justify-between p-6 bg-white/50 rounded-2xl border border-slate-150/40 hover:border-[#ccff00] hover:scale-[1.01] transition-all duration-200 min-h-[160px] text-left">
+                <span className="text-lg font-black text-[#064e52]/30 font-serif italic">{step.num}</span>
+                <div className="space-y-1">
+                  <h3 className="text-[#021e21] font-black text-xs uppercase tracking-tight">
+                    {step.title}
+                  </h3>
+                  <p className="text-slate-400 font-bold leading-relaxed text-[10px]">
+                    {step.desc}
+                  </p>
                 </div>
-                <span className="text-xs font-black text-[#b5e61d] tracking-widest uppercase mt-3">STEP {step.num}</span>
-                <Typography as="h3" variant="body" className="text-[#064e52] font-extrabold mt-1 text-sm">
-                  {step.title}
-                </Typography>
-                <Typography as="p" variant="caption" className="text-slate-500 font-semibold mt-2 leading-relaxed text-xs">
-                  {step.desc}
-                </Typography>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 3 Role Selection Buttons */}
-        <section className="space-y-5 text-center">
-          <Typography as="h3" variant="h2" className="text-[#064e52] font-black">
-            로그인해서 LoopNote 시작하기
-          </Typography>
-          <Typography as="p" variant="caption" className="text-slate-500 font-bold -mt-2">
-            사용하실 계정의 역할에 맞는 버튼을 선택해 주세요.
-          </Typography>
+        {/* Roles Portals Selector - Completely Emoji-Free */}
+        <section className="space-y-6 text-left border-t border-[#064e52]/5 pt-8">
+          <div className="space-y-1">
+            <h2 className="text-[#021e21] font-black text-xl tracking-tight uppercase">
+              Dashboard Entry Console
+            </h2>
+            <p className="text-slate-400 font-extrabold text-[9.5px] uppercase tracking-widest">
+              Please choose your workspace to continue
+            </p>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
             {[
-              { role: "student", label: "학생으로 로그인", desc: "스캔하고, 생각 열고, 미션 완료!", bg: "hover:border-[#b5e61d] bg-white", color: "text-[#064e52]", emoji: "🎒" },
-              { role: "parent", label: "학부모로 로그인", desc: "자녀의 오답 회복과 성장을 한눈에!", bg: "hover:border-[#0d6e73] bg-white", color: "text-[#0d6e73]", emoji: "🏠" },
-              { role: "teacher", label: "선생님으로 로그인", desc: "학습 상태 모니터링 및 맞춤 지도!", bg: "hover:border-slate-500 bg-white", color: "text-slate-700", emoji: "👩‍🏫" },
+              { role: "student", label: "학생 대시보드", desc: "오답 스캔 & 10분 생각 회복 루프 풀이", border: "hover:border-[#ccff00]" },
+              { role: "parent", label: "학부모 대시보드", desc: "자녀의 실시간 종합 리포트 및 코칭 가이드", border: "hover:border-[#ccff00]" },
+              { role: "teacher", label: "교사 대시보드", desc: "학급 취약 패턴 분석 및 오답 처방 제어", border: "hover:border-[#ccff00]" },
             ].map((btn, idx) => (
               <button
                 key={idx}
                 onClick={() => {
                   router.push(`/login?role=${btn.role}`);
                 }}
-                className={`flex flex-col items-center justify-between p-6 rounded-2xl border border-slate-200 shadow-sm transition duration-300 ${btn.bg} group text-left w-full focus:outline-none focus:ring-2 focus:ring-[#064e52]/40`}
+                className={`glass-card flex flex-col justify-between p-6 md:p-7 rounded-[2rem] border border-white/60 shadow-sm transition-all duration-300 ${btn.border} group text-left w-full focus:outline-none hover:scale-[1.01] active:scale-[0.99] cursor-pointer min-h-[170px]`}
               >
-                <div className="flex flex-col items-center text-center">
-                  <span className="text-4xl mb-3.5 group-hover:scale-110 transition duration-300">{btn.emoji}</span>
-                  <span className={`text-base font-black ${btn.color} block mb-1`}>{btn.label}</span>
-                  <span className="text-[11px] font-semibold text-slate-400 leading-normal">{btn.desc}</span>
+                <div className="space-y-2">
+                  <span className="inline-block text-[8px] font-black tracking-widest text-[#064e52]/60 uppercase">{btn.role} workspace</span>
+                  <h3 className="text-sm font-black text-slate-800 tracking-tight">{btn.label}</h3>
+                  <p className="text-[10px] font-bold text-slate-400 leading-normal">{btn.desc}</p>
                 </div>
-                <div className="mt-5 w-full bg-[#f8fafc] group-hover:bg-[#064e52]/5 py-2.5 rounded-xl border border-slate-100 text-center transition duration-200">
-                  <span className="text-xs font-black text-[#064e52]">이동하기 →</span>
+                <div className="mt-4 w-full bg-slate-100/60 group-hover:bg-[#ccff00] py-2.5 rounded-xl text-center transition-all duration-200">
+                  <span className="text-[10px] font-black text-[#064e52] uppercase tracking-widest">Connect console</span>
                 </div>
               </button>
             ))}
@@ -321,101 +287,107 @@ export default function StudentHomePage() {
   }
 
   // =========================================================================
-  // LOGGED IN (AUTHENTICATED) STUDENT DASHBOARD
+  // LOGGED IN (AUTHENTICATED) STUDENT DASHBOARD - AWWRARDS SWISS GRID
   // =========================================================================
   return (
-    <div className="flex flex-col gap-8 py-2 max-w-4xl mx-auto">
-      {/* Dynamic Greeting */}
-      <section className="rounded-3xl border border-slate-200/60 bg-white px-6 py-6 shadow-sm relative overflow-hidden flex items-center justify-between">
+    <div className="flex flex-col gap-6 py-6 max-w-5xl mx-auto px-4 relative overflow-hidden bg-transparent">
+      
+      {/* Background lights */}
+      <div className="absolute top-10 right-[-10%] w-72 h-72 bg-teal-500/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-10 left-[-10%] w-60 h-60 bg-[#ccff00]/5 rounded-full blur-[90px] pointer-events-none" />
+
+      {/* Greeting Banner */}
+      <section className="glass-card rounded-[2rem] border border-white/60 px-6 py-8 shadow-[0_20px_50px_rgba(6,78,82,0.02)] relative overflow-hidden flex items-center justify-between transition-all duration-300 hover:scale-[1.005]">
         <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 opacity-5 pointer-events-none">
           <InfinityLogo className="w-48 h-48 text-[#064e52]" />
         </div>
-        <div className="relative z-10 space-y-2">
-          <div className="inline-flex rounded-full bg-[#064e52]/5 border border-[#064e52]/10 px-3 py-1 text-xs font-black text-[#064e52]">
-            ⚡ 오늘의 회복 파트너
+        <div className="relative z-10 space-y-2 text-left">
+          <div className="inline-flex rounded-full bg-[#064e52]/5 border border-[#064e52]/10 px-3.5 py-1.5 text-[9.5px] font-black text-[#064e52] tracking-widest uppercase">
+            ACTIVE STUDY MEMBER
           </div>
-          <Typography as="h1" variant="h1" className="text-slate-900 font-black text-2xl md:text-3xl leading-snug">
-            안녕, {studentName} 👋 <br className="sm:hidden" />
-            <span className="text-[#064e52]">오늘은 10분만 다시 해보면 충분해요.</span>
-          </Typography>
+          <h1 className="text-[#021e21] font-black text-2xl md:text-3xl tracking-tight leading-snug">
+            안녕, {studentName} <br className="sm:hidden" />
+            <span className="text-[#064e52] font-serif italic font-normal">오늘은 10분만 복습해 볼까요?</span>
+          </h1>
         </div>
       </section>
 
-      {/* Today's Recovery Mission Banner */}
-      <section className="rounded-3xl bg-[#064e52] text-white p-6 shadow-lg border border-[#00363a] relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="absolute right-0 bottom-0 translate-x-6 translate-y-6 opacity-10 pointer-events-none">
-          <span className="text-9xl">🎯</span>
-        </div>
+      {/* Today's Recovery Mission Banner - Emoji-free, sleek editorial */}
+      <section className="rounded-[2.5rem] bg-gradient-to-r from-[#00282b] via-[#064e52] to-[#011417] text-white p-7 shadow-lg border border-[#00282b]/50 relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-5 transition-all duration-300 hover:shadow-xl group">
+        <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-[#ccff00]/10 rounded-full blur-[70px] pointer-events-none" />
         
-        <div className="relative z-10 space-y-1.5">
-          <span className="inline-block text-[10px] font-black bg-[#b5e61d]/20 text-[#b5e61d] px-2.5 py-1 rounded-md tracking-wider uppercase">
-            TODAY'S MISSION
+        <div className="relative z-10 space-y-2 text-left">
+          <span className="inline-block text-[8.5px] font-black bg-[#ccff00]/10 text-[#ccff00] px-3 py-1 rounded border border-[#ccff00]/25 tracking-widest uppercase">
+            ACTIVE LOOP
           </span>
-          <Typography as="h2" variant="h2" className="text-white font-extrabold text-xl">
-            수학 - 분수의 크기 비교 (10분)
-          </Typography>
-          <Typography as="p" variant="caption" className="text-teal-100/80 font-bold">
-            피자 조각 그림을 직접 움직이며 분수의 크기를 완벽히 이해해요.
+          <h2 className="text-white font-black text-xl md:text-2xl tracking-tight leading-none">
+            수학 - 분수의 크기 비교
+          </h2>
+          <Typography as="p" variant="caption" className="text-teal-200/70 font-bold leading-relaxed text-[11px] max-w-lg">
+            시각적 디스크 모델을 드래그해 움직이며 분모 분자의 개념을 직관적으로 이해해 보세요.
           </Typography>
         </div>
 
         <div className="relative z-10 flex-shrink-0">
           <Link
             href={continueMissionId ? `/missions/${continueMissionId}` : "/wrong-notes"}
-            className="inline-flex items-center justify-center min-h-12 px-6 rounded-2xl bg-[#b5e61d] hover:bg-[#a1cf15] text-[#064e52] font-black text-sm transition duration-200 shadow-md shadow-black/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#b5e61d]/40"
+            className="inline-flex items-center justify-center min-h-12 px-6 rounded-2xl bg-[#ccff00] hover:bg-[#e1ff66] text-[#00282b] font-black text-xs transition duration-200 shadow-md hover:scale-[1.01] active:scale-[0.99] cursor-pointer animate-pulse-glow"
           >
-            {continueMissionId ? "미션 이어하기 >" : "새 오답 등록하기 >"}
+            {continueMissionId ? "오답 미션 이어하기 ➔" : "새로운 오답 찰칵 찍기 ➔"}
           </Link>
         </div>
       </section>
 
-      {/* Grid of In-progress / Completed / Growth report */}
+      {/* Grid of Loops List & Growth Gauge */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left 2 columns: Loop List */}
-        <div className="md:col-span-2 space-y-6">
+        
+        {/* Left 2 columns: Active & Completed Loop Lists */}
+        <div className="md:col-span-2 space-y-6 text-left">
+          
           {/* In-progress Loops List */}
-          <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🔄</span>
-              <Typography as="h2" variant="h2" className="text-slate-900 font-black">
-                진행 중인 회복 루프
-              </Typography>
-              <span className="text-xs bg-[#0d6e73]/10 text-[#0d6e73] font-black px-2 py-0.5 rounded-full">
-                {activeMissions.length}
-              </span>
+          <section className="space-y-3.5">
+            <div className="flex items-center justify-between border-b border-slate-100/60 pb-3">
+              <div className="flex items-center gap-2">
+                <Typography as="h2" variant="h2" className="text-[#021e21] font-black text-sm uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00]" /> 진행 중인 회복 루프
+                </Typography>
+                <span className="text-[10px] bg-[#0d6e73]/5 text-[#0d6e73] font-black px-2 py-0.5 rounded shadow-sm border border-[#0d6e73]/10">
+                  {activeMissions.length}
+                </span>
+              </div>
             </div>
 
             {activeMissions.length > 0 ? (
-              <ul className="space-y-3">
+              <ul className="space-y-3.5">
                 {activeMissions.map((item) => (
                   <li key={item.id} className="group">
                     <Link
                       href={`/missions/${item.id}`}
-                      className="block rounded-2xl bg-white border border-slate-200 hover:border-[#0d6e73]/30 p-4 shadow-sm hover:shadow-md transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d6e73]"
+                      className="block rounded-3xl bg-white border border-slate-200/80 hover:border-[#ccff00] p-5.5 shadow-[0_8px_32px_rgba(6,78,82,0.015)] transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
                     >
-                      <div className="flex justify-between items-start mb-3">
+                      <div className="flex justify-between items-start mb-3.5">
                         <div>
-                          <span className="text-[10px] font-black text-[#0d6e73] bg-[#0d6e73]/5 border border-[#0d6e73]/10 px-2 py-0.5 rounded-md">
+                          <span className="text-[9px] font-black text-[#0d6e73] bg-[#0d6e73]/5 border border-[#0d6e73]/10 px-2.5 py-1 rounded uppercase tracking-wider">
                             {item.concept}
                           </span>
-                          <Typography as="h3" variant="body" className="text-slate-950 font-black text-sm mt-1.5">
+                          <Typography as="h3" variant="body" className="text-[#021e21] font-black text-sm mt-2.5">
                             {item.title}
                           </Typography>
                         </div>
-                        <span className="text-xs font-black text-[#064e52]">
+                        <span className="text-[10px] font-black text-[#064e52] bg-teal-50 px-2.5 py-1 rounded shadow-sm border border-[#064e52]/10">
                           {item.progressPercent}% 진행
                         </span>
                       </div>
                       
-                      {/* Progress Bar indicator */}
-                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                      {/* Premium Progress Bar */}
+                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
                         <div 
-                          className="bg-gradient-to-r from-[#0d6e73] to-[#064e52] h-full rounded-full transition-all duration-300"
+                          className="bg-gradient-to-r from-[#064e52] to-[#ccff00] h-full rounded-full transition-all duration-500"
                           style={{ width: `${item.progressPercent}%` }}
                         />
                       </div>
-                      <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold mt-2">
-                        <span>생각 설명 단계</span>
+                      <div className="flex justify-between items-center text-[9px] text-slate-400 font-extrabold uppercase mt-2.5 tracking-widest">
+                        <span>Socratic Step Progress</span>
                         <span>{item.currentStep} / {item.totalSteps} 힌트</span>
                       </div>
                     </Link>
@@ -423,98 +395,96 @@ export default function StudentHomePage() {
                 ))}
               </ul>
             ) : (
-              <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center space-y-3">
-                <p className="text-slate-500 font-semibold text-xs leading-relaxed">
-                  진행 중인 회복 루프가 없습니다. <br />
-                  오답을 스캔하여 첫 번째 미션을 시작해 보세요!
+              <div className="glass-card rounded-[2rem] border border-dashed border-slate-200 bg-slate-50/40 p-8 text-center space-y-4 transition-all duration-300">
+                <p className="text-slate-400 font-bold text-xs leading-relaxed max-w-xs mx-auto">
+                  현재 해결 중인 오답 회복 루프가 없네요. 첫 오답 스캔 후 맞춤형 처방 미션을 발급받아보세요!
                 </p>
-                <Button
+                <button
                   onClick={() => router.push("/wrong-notes")}
-                  size="sm"
-                  variant="outline"
-                  className="border-[#0d6e73] text-[#0d6e73] hover:bg-[#0d6e73]/5 font-black rounded-xl"
+                  className="bg-[#064e52] hover:bg-[#00363a] text-white font-black text-xs py-3 px-6 rounded-2xl shadow-sm transition duration-200 cursor-pointer"
                 >
-                  오답 스캔하러 가기
-                </Button>
+                  오답 카메라 열기
+                </button>
               </div>
             )}
           </section>
 
           {/* Completed History List */}
-          <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">✅</span>
-              <Typography as="h2" variant="h2" className="text-slate-900 font-black">
-                회복 완료 히스토리
-              </Typography>
-              <span className="text-xs bg-[#b5e61d]/20 text-[#064e52] font-black px-2 py-0.5 rounded-full">
-                {completedMissions.length}
-              </span>
+          <section className="space-y-3.5 pt-4">
+            <div className="flex items-center justify-between border-b border-slate-100/60 pb-3">
+              <div className="flex items-center gap-2">
+                <Typography as="h2" variant="h2" className="text-[#021e21] font-black text-sm uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ccff00]" /> 극복 마스터 내역
+                </Typography>
+                <span className="text-[10px] bg-[#ccff00] text-[#064e52] font-black px-2 py-0.5 rounded shadow-sm border border-[#064e52]/10">
+                  {completedMissions.length}
+                </span>
+              </div>
             </div>
 
             {completedMissions.length > 0 ? (
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {completedMissions.map((item) => (
                   <li 
                     key={item.id} 
-                    className="flex items-center justify-between p-3.5 bg-white rounded-xl border border-slate-100 shadow-sm"
+                    className="flex items-center justify-between p-4 bg-white/50 backdrop-blur-md rounded-2xl border border-slate-150/40 shadow-[0_4px_16px_rgba(6,78,82,0.01)] transition-all hover:scale-[1.005]"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#b5e61d]/15 text-[#064e52] text-xs font-black">
+                      <span className="flex h-7.5 w-7.5 items-center justify-center rounded-xl bg-white border border-[#ccff00]/40 text-emerald-600 text-xs font-black shadow-sm">
                         ✓
                       </span>
                       <div>
-                        <Typography as="h3" variant="body" className="font-extrabold text-slate-800 text-xs">
+                        <Typography as="h3" variant="body" className="font-black text-slate-800 text-xs">
                           {item.title}
                         </Typography>
                         <span className="text-[9px] font-bold text-slate-400 block mt-0.5">
-                          {item.concept} · 완료
+                          {item.concept} · 마스터 완료
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                      +12 EP 회복
+                    <span className="text-[9.5px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100 shadow-sm flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21c0-4-2-7-6-8 4-1 6-4 6-8 0 4 2 7 6 8-4 1-6 4-6 8z" /></svg>
+                      <span>+12 EP 회복 완료</span>
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center">
-                <p className="text-slate-400 font-medium text-[11px]">
-                  회복을 끝마친 미션이 아직 없어요. 차근차근 해결해봐요!
+              <div className="rounded-2xl border border-dashed border-slate-200/80 bg-slate-50/40 p-4.5 text-center">
+                <p className="text-slate-400 font-bold text-[10px]">
+                  성공적으로 마스터 완료한 미션 히스토리가 아직 비어 있습니다.
                 </p>
               </div>
             )}
           </section>
         </div>
 
-        {/* Right column: Growth rate Card */}
-        <div className="space-y-6">
-          {/* Weekly Growth Rate Progress Circle Card */}
-          <section className="rounded-3xl border border-slate-200/60 bg-white p-5 shadow-sm text-center flex flex-col items-center">
-            <Typography as="h3" variant="body" className="text-slate-900 font-black text-sm mb-4">
-              주간 성장률
+        {/* Right column: Weekly Growth Progress Gauge & Visual Tips */}
+        <div className="space-y-6 text-left">
+          
+          {/* Premium Weekly Growth Gauge Card */}
+          <section className="glass-card rounded-[2rem] border border-white/60 p-6 md:p-8 shadow-[0_20px_50px_rgba(6,78,82,0.03)] text-center flex flex-col items-center transition-all duration-300 hover:scale-[1.01]">
+            <Typography as="h3" variant="body" className="text-[#021e21] font-black text-[11px] uppercase tracking-widest mb-4 border-b border-[#064e52]/5 pb-2.5 w-full">
+              Weekly Recovery Stats
             </Typography>
 
-            {/* Circular Progress Gauge */}
-            <div className="relative w-36 h-36 flex items-center justify-center">
+            {/* Circular Gauge */}
+            <div className="relative w-36 h-36 flex items-center justify-center animate-float">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                {/* Background track */}
                 <circle 
                   cx="50" 
                   cy="50" 
                   r="40" 
-                  stroke="#f1f5f9" 
-                  strokeWidth="10" 
+                  stroke="rgba(6,78,82,0.04)" 
+                  strokeWidth="11" 
                   fill="transparent" 
                 />
-                {/* Active value */}
                 <circle 
                   cx="50" 
                   cy="50" 
                   r="40" 
-                  stroke="url(#growthGradient)" 
-                  strokeWidth="10" 
+                  stroke="url(#growthGradDashboard)" 
+                  strokeWidth="11" 
                   strokeDasharray="251.2" 
                   strokeDashoffset={251.2 * (1 - 0.8)} 
                   strokeLinecap="round"
@@ -523,43 +493,45 @@ export default function StudentHomePage() {
                 />
                 
                 <defs>
-                  <linearGradient id="growthGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#0d6e73" />
-                    <stop offset="100%" stopColor="#b5e61d" />
+                  <linearGradient id="growthGradDashboard" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#064e52" />
+                    <stop offset="100%" stopColor="#ccff00" />
                   </linearGradient>
                 </defs>
               </svg>
               
-              {/* Inner Circle Details */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-black text-[#064e52]">80%</span>
-                <span className="text-[10px] font-bold text-slate-400 mt-0.5">목표 도달</span>
+                <span className="text-3xl font-black text-[#064e52] tracking-tighter">80%</span>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Index</span>
               </div>
             </div>
 
-            <div className="mt-4 bg-[#f8fafc] border border-slate-100 rounded-2xl p-3 w-full text-left">
-              <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wide mb-1">
-                COACHING CARD FEEDBACK
+            {/* Live DB Coaching Card Feed */}
+            <div className="mt-5 bg-white/60 border border-slate-150/40 rounded-2xl p-4.5 w-full text-left relative overflow-hidden shadow-inner">
+              <div className="absolute inset-x-0 top-0 h-[3px] bg-[#ccff00]" />
+              <span className="block text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                Teacher's Live Coaching
               </span>
-              <p className="text-xs font-bold text-[#064e52] leading-relaxed">
+              <p className="text-[11.5px] font-bold text-[#064e52] leading-relaxed">
                 {coachingFeedback ? (
                   coachingFeedback
                 ) : (
                   <>
-                    {studentName} 학생은 이번 주에 분수의 기초 개념을 <strong>80%</strong> 마스터했어요! 다음 단계인 동분모 덧셈을 시도해봐도 좋아요. 🌱
+                    {studentName} 학생은 이번 주에 분수의 기초 개념을 <strong>80%</strong> 마스터했어요! 다음 단계인 대분수와 가분수 덧셈을 시도해봐도 좋습니다.
                   </>
                 )}
               </p>
             </div>
           </section>
 
-          {/* Quick Info card */}
-          <section className="rounded-3xl bg-[#b5e61d]/10 border border-[#b5e61d]/30 p-5">
-            <Typography as="h3" variant="body" className="text-[#064e52] font-black text-xs mb-1.5">
-              루프학습 팁 🌱
-            </Typography>
-            <p className="text-xs font-semibold text-slate-600 leading-relaxed">
-              문제를 찍을 때는 풀이 과정을 포함해 주세요. AI 선생님이 어느 지점에서 막혔는지 정확히 짚어내어 맞춤형 회복 지도를 그릴 수 있답니다.
+          {/* Quick Guidance Card */}
+          <section className="rounded-[2rem] bg-[#ccff00]/10 border border-[#ccff00]/25 p-5 relative overflow-hidden">
+            <h3 className="text-[#064e52] font-black text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
+              <svg className="w-4 h-4 text-[#064e52]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+              <span>루프학습 가이드</span>
+            </h3>
+            <p className="text-[10px] font-bold text-slate-500 leading-relaxed">
+              문제를 찍을 때는 풀이 과정이나 고민을 최대한 함께 담아주세요. AI 선생님이 여러분이 막힌 오류 지점을 정확하게 찾아내 한층 정교한 3단계 회복 힌트를 제작해 줍니다.
             </p>
           </section>
         </div>

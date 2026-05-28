@@ -657,7 +657,7 @@ export async function getMissionDetail(
         id: "sample-mission-id",
         questionId: "sample-question-id",
         title: "오답 회복 미션 (체험)",
-        concept: "동분모 분수의 덧셈과 뺄셈 🧮",
+        concept: "동분모 분수의 덧셈과 뺄셈",
         prompt: "피자 1판이 8조각으로 나뉘어 있습니다. 지우가 3조각을 먹고, 민수가 2조각을 먹었습니다. 두 사람이 먹은 피자는 전체의 몇 분의 몇일까요?",
         energyReward: 20,
         currentStep: 0,
@@ -665,19 +665,19 @@ export async function getMissionDetail(
         hints: [
           {
             id: "1-concept",
-            title: "1단계: 문제 상황 파악하기 🍕",
+            title: "1단계: 문제 상황 파악하기",
             hint: "피자 전체는 8조각입니다. 한 조각은 전체의 8분의 1(1/8)을 나타냅니다. 지우와 민수가 각각 먹은 조각 수를 세어보세요.",
             encouragement: "그림을 보고 천천히 세어봐도 괜찮아요!"
           },
           {
             id: "2-concept",
-            title: "2단계: 분수로 표현하기 📊",
+            title: "2단계: 분수로 표현하기",
             hint: "지우가 먹은 양은 8조각 중 3조각이므로 '3/8'이고, 민수가 먹은 양은 8조각 중 2조각이므로 '2/8'입니다. 두 분수의 분모와 분자를 확인해 보세요.",
             encouragement: "분모는 전체 조각 수, 분자는 먹은 조각 수예요!"
           },
           {
             id: "3-action",
-            title: "3단계: 동분모 분수의 덧셈 전개 ➕",
+            title: "3단계: 동분모 분수의 덧셈 전개",
             hint: "분모가 같을 때는 분모를 그대로 두고 분자만 더합니다. 즉, 3/8 + 2/8 = (3+2)/8 = 5/8 입니다. 두 사람이 먹은 피자는 전체의 '8분의 5'입니다! 정답창에 5/8를 적어보세요.",
             encouragement: "다 왔어요! 분모는 8 그대로, 분자는 3+2를 더하면 돼요!"
           }

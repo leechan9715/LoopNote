@@ -93,24 +93,24 @@ export async function POST(request: Request) {
           const fallbackSteps = [
             {
               order: 1,
-              title: "1단계: 문제의 조건 파악하기 🔍",
+              title: "1단계: 문제의 조건 파악하기",
               hint: "문제를 소리 내어 한 글자씩 읽어보세요. 이 문제에서 구하고자 하는 최종 값은 무엇인가요?",
               studentAction: "구해야 하는 정답이 무엇인지 입력창에 한 줄로 적어보기",
-              encouragement: "스스로 풀 수 있는 첫걸음입니다. 힘내세요! 🌱"
+              encouragement: "스스로 풀 수 있는 첫걸음입니다. 힘내세요!"
             },
             {
               order: 2,
-              title: "2단계: 배운 개념 기억하기 💡",
+              title: "2단계: 배운 개념 기억하기",
               hint: "이 문제와 관련해서 학교나 학원에서 배운 개념은 무엇인가요? 문제를 해결하기 위한 식을 세워보세요.",
               studentAction: "문제를 풀기 위한 연산 기호나 공식을 적어보기",
-              encouragement: "중간 풀이도 훌륭한 성공 경험입니다! 🌟"
+              encouragement: "중간 풀이도 훌륭한 성공 경험입니다!"
             },
             {
               order: 3,
-              title: "3단계: 스스로 풀이 완성하기 ➕",
+              title: "3단계: 스스로 풀이 완성하기",
               hint: "식과 조건들을 바탕으로 빈 도화지에 적어서 계산해 보세요. 스스로 찾은 정답은 무엇인가요?",
               studentAction: "자신이 도출해낸 결과를 입력창에 적어보기",
-              encouragement: "마지막 단계입니다. 끝까지 잘 풀어냈어요! 💪"
+              encouragement: "마지막 단계입니다. 끝까지 잘 풀어냈어요!"
             }
           ];
 

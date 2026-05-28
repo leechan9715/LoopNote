@@ -187,10 +187,10 @@ export default function WeeklyGrowthReport() {
     let anyActiveMissionId: string | null = null;
 
     const emotionCounts: Record<string, number> = {
-      "헷갈렸어요 😕": 0,
-      "너무 어려웠어요 😫": 0,
-      "실수했어요 😅": 0,
-      "포기하고 싶었어요 😭": 0,
+      "헷갈렸어요": 0,
+      "너무 어려웠어요": 0,
+      "실수했어요": 0,
+      "포기하고 싶었어요": 0,
     };
 
     weekQuestions.forEach((q) => {
@@ -254,9 +254,9 @@ export default function WeeklyGrowthReport() {
     // Set custom KPI stats based on real data
     const energy = completedCount * 12;
     const kpis = [
-      { label: "완료한 미션", value: `${completedCount}개`, desc: `목표 대비 ${Math.round((completedCount / 5) * 100)}%`, icon: "🎯", color: "text-[#0d6e73]" },
-      { label: "획득 에너지", value: `${energy} EP`, desc: `누적 ${energy + 240} EP`, icon: "⚡", color: "text-amber-500" },
-      { label: "평균 집중 시간", value: "8분 12초", desc: "타이머 대비 82%", icon: "⏱️", color: "text-blue-500" },
+      { label: "완료한 미션", value: `${completedCount}개`, desc: `목표 대비 ${Math.round((completedCount / 5) * 100)}%`, iconType: "growth" as const, color: "text-[#0d6e73]" },
+      { label: "획득 에너지", value: `${energy} EP`, desc: `누적 ${energy + 240} EP`, iconType: "lightbulb" as const, color: "text-amber-500" },
+      { label: "평균 집중 시간", value: "8분 12초", desc: "타이머 대비 82%", iconType: "settings" as const, color: "text-blue-500" },
     ];
 
     // Map emotions
@@ -309,18 +309,18 @@ export default function WeeklyGrowthReport() {
     }
 
     let recommendation = {
-      title: `단원 연계: "${topConcept}" 심화 개념 정복 💡`,
+      title: `단원 연계: "${topConcept}" 심화 개념 정복`,
       desc: `${studentName} 학생은 이번 주 "${topConcept}" 개념의 취약 지점을 적극 복구했습니다! 오답 회복률의 성장세를 몰아 다음 주에는 이와 결합된 다음 단계 심화 개념의 10분 소크라테스식 개념 훈련을 추천합니다. AI 선생님이 2단계 난이도 미션을 제공합니다.`
     };
 
     if (isFractions) {
       recommendation = {
-        title: "단원 연계: 동분모 분수의 덧셈과 뺄셈 🧮",
+        title: "단원 연계: 동분모 분수의 덧셈과 뺄셈",
         desc: `${studentName} 학생은 피자 모델 비교를 완벽히 이해해 분수의 기본 개념(단위 분수)을 마스터했습니다! 다음 주에는 1판을 넘어가는 대분수 개념과, 분모가 같은 분수의 더하기 빼기를 훈련해 연산 실력을 높여보세요. AI 선생님이 2단계 난이도 미션을 추천합니다.`
       };
     } else if (isGeometry) {
       recommendation = {
-        title: "단원 연계: 다각형의 내각의 크기 합 구하기 📐",
+        title: "단원 연계: 다각형의 내각의 크기 합 구하기",
         desc: `${studentName} 학생은 이번 주 삼각형의 세 각의 합(180도) 개념 오답을 집중 극복했습니다! 다음 단계로 한 단계 올라가 사각형, 오각형 등 다각형의 내각 크기 총합을 구하는 비주얼 가이드를 추천합니다. AI 선생님이 기하 영역의 실력을 단단히 굳힐 2단계 난이도 미션을 배정했습니다.`
       };
     }
@@ -364,27 +364,27 @@ export default function WeeklyGrowthReport() {
       const e4 = 100 - e1 - e2 - e3;
       
       const emotionsList = [
-        { type: "헷갈렸어요 😕", percent: e1, count: Math.max(1, Math.round(mCount * (e1/100))), color: "bg-blue-500" },
-        { type: "실수했어요 😅", percent: e2, count: Math.max(1, Math.round(mCount * (e2/100))), color: "bg-amber-500" },
-        { type: "너무 어려웠어요 😫", percent: e3, count: Math.max(1, Math.round(mCount * (e3/100))), color: "bg-purple-500" },
-        { type: "포기하고 싶었어요 😭", percent: e4, count: Math.max(0, Math.round(mCount * (e4/100))), color: "bg-rose-500" },
+        { type: "헷갈렸어요", percent: e1, count: Math.max(1, Math.round(mCount * (e1/100))), color: "bg-blue-500" },
+        { type: "실수했어요", percent: e2, count: Math.max(1, Math.round(mCount * (e2/100))), color: "bg-amber-500" },
+        { type: "너무 어려웠어요", percent: e3, count: Math.max(1, Math.round(mCount * (e3/100))), color: "bg-purple-500" },
+        { type: "포기하고 싶었어요", percent: e4, count: Math.max(0, Math.round(mCount * (e4/100))), color: "bg-rose-500" },
       ];
 
       const conicGradient = `conic-gradient(#3b82f6 0% ${e1}%, #f59e0b ${e1}% ${e1 + e2}%, #a855f7 ${e1 + e2}% ${e1 + e2 + e3}%, #f43f5e ${e1 + e2 + e3}% 100%)`;
 
       const recommendation = isFractions ? {
-        title: "단원 연계: 동분모 분수의 덧셈과 뺄셈 🧮",
+        title: "단원 연계: 동분모 분수의 덧셈과 뺄셈",
         desc: `${studentName} 학생은 피자 모델 비교를 완벽히 이해해 분수의 기본 개념(단위 분수)을 마스터했습니다! 다음 주에는 1판을 넘어가는 대분수 개념과, 분모가 같은 분수의 더하기 빼기를 훈련해 연산 실력을 높여보세요. AI 선생님이 2단계 난이도 미션을 추천합니다.`,
       } : {
-        title: "단원 연계: 다각형의 내각의 크기 합 구하기 📐",
+        title: "단원 연계: 다각형의 내각의 크기 합 구하기",
         desc: `${studentName} 학생은 이번 주 삼각형의 세 각의 합(180도) 개념 오답을 집중 극복했습니다! 다음 단계로 한 단계 올라가 사각형, 오각형 등 다각형의 내각 크기 총합을 구하는 비주얼 가이드를 추천합니다. AI 선생님이 기하 영역의 실력을 단단히 굳힐 2단계 난이도 미션을 배정했습니다.`,
       };
 
       return {
         kpis: [
-          { label: "완료한 미션", value: `${mCount}개`, desc: `목표 대비 ${Math.round((mCount / 6) * 100)}%`, icon: "🎯", color: "text-[#0d6e73]" },
-          { label: "획득 에너지", value: `${energy} EP`, desc: `누적 ${accumEnergy} EP`, icon: "⚡", color: "text-amber-500" },
-          { label: "평균 집중 시간", value: `8분 ${focusSec}초`, desc: `타이머 대비 ${focusPercent}%`, icon: "⏱️", color: "text-blue-500" },
+          { label: "완료한 미션", value: `${mCount}개`, desc: `목표 대비 ${Math.round((mCount / 6) * 100)}%`, iconType: "growth" as const, color: "text-[#0d6e73]" },
+          { label: "획득 에너지", value: `${energy} EP`, desc: `누적 ${accumEnergy} EP`, iconType: "lightbulb" as const, color: "text-amber-500" },
+          { label: "평균 집중 시간", value: `8분 ${focusSec}초`, desc: `타이머 대비 ${focusPercent}%`, iconType: "settings" as const, color: "text-blue-500" },
         ],
         conceptBlocks: concepts,
         emotions: emotionsList,
@@ -449,7 +449,7 @@ export default function WeeklyGrowthReport() {
               나의 성장 히스토리
             </Typography>
             <Typography as="h1" variant="h1" className="text-slate-900 font-black text-xl md:text-2xl">
-              주간 학습 리포트 📊
+              주간 학습 리포트
             </Typography>
           </div>
         </section>
@@ -457,8 +457,8 @@ export default function WeeklyGrowthReport() {
         {/* Beautiful Premium Empty State Card */}
         <section className="bg-white rounded-3xl border border-slate-200/60 p-8 text-center shadow-sm flex flex-col items-center justify-center py-16 gap-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-500 via-[#b5e61d] to-[#064e52]" />
-          <div className="w-20 h-20 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center text-4xl shadow-sm animate-bounce duration-1000">
-            📭
+          <div className="w-20 h-20 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm animate-bounce duration-1000 p-4">
+            <svg className="w-12 h-12 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
           </div>
           <div className="space-y-2 max-w-md">
             <Typography as="h2" variant="h2" className="text-slate-800 font-black text-lg md:text-xl">
@@ -498,7 +498,7 @@ export default function WeeklyGrowthReport() {
             나의 성장 히스토리
           </Typography>
           <Typography as="h1" variant="h1" className="text-slate-900 font-black text-xl md:text-2xl">
-            주간 학습 리포트 📊
+            주간 학습 리포트
           </Typography>
         </div>
  
@@ -522,13 +522,13 @@ export default function WeeklyGrowthReport() {
       {/* 데이터 연동 상태 안내 배너 */}
       {hasRealDataForWeek ? (
         <div className="rounded-2xl border border-emerald-150 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-800 flex items-center justify-between shadow-sm animate-in fade-in duration-300">
-          <span>✅ 실시간 나의 오답 데이터를 분석하여 작성한 맞춤 성장 보고서입니다.</span>
+          <span>실시간 나의 오답 데이터를 분석하여 작성한 맞춤 성장 보고서입니다.</span>
           <span className="text-[10px] font-black bg-[#064e52] text-white px-2 py-0.5 rounded">실시간 분석</span>
         </div>
       ) : isDemoStudent ? (
         <div className="rounded-2xl border border-teal-100 bg-teal-50/50 px-4 py-3.5 text-xs font-bold text-[#064e52] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-in fade-in duration-300">
           <div className="space-y-0.5">
-            <span className="font-black block text-sm">💡 체험용 샘플 학습 리포트 표시 중</span>
+            <span className="font-black block text-sm">체험용 샘플 학습 리포트 표시 중</span>
             <span className="text-[11px] font-semibold text-slate-500 leading-relaxed block">
               아직 로그인하지 않은 비회원이거나 가상의 체험용 학생 계정으로 둘러보는 중이므로, LoopNote의 오답 성장 리포트 체험용 기본 샘플을 표시합니다.
             </span>
@@ -540,8 +540,8 @@ export default function WeeklyGrowthReport() {
       {/* 주간 단위의 데이터 부재로 인한 Empty State 처리 */}
       {showWeeklyEmptyState ? (
         <section className="bg-white rounded-3xl border border-slate-200/60 p-8 text-center shadow-sm flex flex-col items-center justify-center py-16 gap-6 relative overflow-hidden">
-          <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-3xl shadow-sm">
-            📅
+          <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm p-3">
+            <svg className="w-10 h-10 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
           </div>
           <div className="space-y-1.5 max-w-md">
             <Typography as="h2" variant="h2" className="text-slate-800 font-black text-base">
@@ -570,8 +570,14 @@ export default function WeeklyGrowthReport() {
                 key={idx} 
                 className="bg-white rounded-3xl border border-slate-200/60 p-5 shadow-sm hover:border-[#b5e61d]/50 transition duration-200 flex items-center gap-4"
               >
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-2xl shadow-sm border border-slate-100/50">
-                  {kpi.icon}
+                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center shadow-sm border border-slate-100/50 p-2">
+                  {kpi.iconType === "growth" ? (
+                    <svg className="w-8 h-8 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21c0-4-2-7-6-8 4-1 6-4 6-8 0 4 2 7 6 8-4 1-6 4-6 8z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 21V11" /></svg>
+                  ) : kpi.iconType === "lightbulb" ? (
+                    <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                  ) : (
+                    <svg className="w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  )}
                 </div>
                 <div>
                   <Typography as="p" variant="caption" className="text-slate-400 font-extrabold leading-none mb-1.5">
@@ -595,7 +601,7 @@ export default function WeeklyGrowthReport() {
             <section className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm flex flex-col justify-between space-y-4">
               <div>
                 <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-sm">
-                  자주 막힌 개념 분석 (오답 빈도) 🧱
+                  자주 막힌 개념 분석 (오답 빈도)
                 </Typography>
                 <Typography as="p" variant="caption" className="text-slate-400 font-bold mt-0.5">
                   이번 주 오답 원인 중 가장 많이 반복된 개념 요인들입니다.
@@ -620,8 +626,8 @@ export default function WeeklyGrowthReport() {
                 ))}
               </div>
               
-              <div className="text-[9px] font-bold text-slate-400">
-                💡 막힌 빈도가 높을수록 맞춤 회복 미션이 우선 배정됩니다.
+              <div className="text-[9px] font-bold text-slate-450 bg-slate-50 border border-slate-150/40 p-2.5 rounded-xl">
+                막힌 빈도가 높을수록 맞춤 회복 미션이 우선 배정됩니다.
               </div>
             </section>
       
@@ -629,7 +635,7 @@ export default function WeeklyGrowthReport() {
             <section className="bg-white rounded-3xl border border-slate-200/60 p-6 shadow-sm flex flex-col justify-between items-center text-center space-y-4">
               <div className="text-left w-full">
                 <Typography as="h2" variant="h2" className="text-[#064e52] font-black text-sm">
-                  학습 감정 점유율 💭
+                  학습 감정 점유율
                 </Typography>
                 <Typography as="p" variant="caption" className="text-slate-400 font-bold mt-0.5">
                   오답 스캔 시 {studentName} 학생이 느꼈던 심리 분석 통계입니다.
@@ -662,10 +668,10 @@ export default function WeeklyGrowthReport() {
       
           {/* Next Week's Recommendation Card */}
           <section className="bg-[#064e52]/5 border-2 border-[#b5e61d]/50 rounded-3xl p-6 shadow-sm space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🌱</span>
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 text-[#064e52] inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21c0-4-2-7-6-8 4-1 6-4 6-8 0 4 2 7 6 8-4 1-6 4-6 8z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 21V11" /></svg>
               <div>
-                <span className="inline-block text-[9px] font-black bg-[#064e52] text-white px-2 py-0.5 rounded leading-none">RECOMMENDATION</span>
+                <span className="inline-block text-[8px] font-black bg-[#064e52] text-white px-2 py-0.5 rounded leading-none tracking-widest uppercase">RECOMMENDATION</span>
                 <Typography as="h3" variant="h2" className="text-[#064e52] font-black text-sm mt-1.5 leading-none">
                   다음 주 성장 로드맵 추천
                 </Typography>
